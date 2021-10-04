@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "bot"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+loguru = "^0.5.3"
+python-telegram-bot = "^13.7"
+pydantic = {version = "^1.8.2", extras = ["dotenv"]}
+colorama = "^0.4.4"
+SQLAlchemy = "^1.4.25"
+"backports.zoneinfo" = "^0.2.1"
+psycopg2 = "^2.9.1"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0a5"]
+build-backend = "poetry.core.masonry.api"
