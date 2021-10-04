@@ -30,7 +30,7 @@ logger.add(
 logger.debug("-------- succesful import --------")
 
 
-# @logger.catch  # catches errors and writes to the debug.log
+@logger.catch  # catches errors and writes to the debug.log
 def main():
     """ inicialise handlers and start the bot """
 
@@ -61,7 +61,7 @@ def main():
         dispatcher.add_handler(conv_handler)
         # dispatcher.add_handler(CommandHandler("info", info))
 
-    # dispatcher.add_error_handler(error_handler)
+    dispatcher.add_error_handler(error_handler)
 
     if ("--web-hook" in sys.argv) or ("-w" in sys.argv):
         logger.debug("-------- starting webhook --------")
