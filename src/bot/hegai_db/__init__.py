@@ -1,2 +1,2 @@
-""" campus db module """
+""" hegai db module """
 from .models import *

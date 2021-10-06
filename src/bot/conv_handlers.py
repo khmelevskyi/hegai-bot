@@ -10,6 +10,9 @@ from .handlers import start
 from .handlers import stop
 from .handlers import admin
 from .handlers import profile
+from .handlers import check_notion_username
+from .handlers import check_username
+from .handlers import registration_final
 from .states import States
 
 
@@ -40,19 +43,24 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text([text["admin_menu"]]), admin),
             MessageHandler(Filters.text([text["profile"]]), profile),
         ],
-        # States.ACCOUNT: [
-        #     *necessary_handlers,
-        #     MessageHandler(Filters.text([text["admin_menu"]]), admin),
-        #     MessageHandler(Filters.text([text["change_button"]]), ask_region),
-        #     MessageHandler(Filters.text([text["back"]]), start),
-        # ],
+        States.ACCOUNT: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["main_menu"]]), start),
+            # MessageHandler(Filters.text([text["change_name"]]), change_name),
+            # MessageHandler(Filters.text([text["change_region"]]), change_region),
+            # MessageHandler(Filters.text([text["change_status"]]), change_status),
+        ],
         # -----------------------------------------------------------
         # Registration
         # -----------------------------------------------------------
-        # States.CITY: [
-        #     MessageHandler(Filters.text([text["back"]]), profile),
-        #     MessageHandler(Filters.text, ask_university),
-        # ],
+        States.ASK_USERNAME: [
+            MessageHandler(Filters.text([text["back"]]), profile),
+            MessageHandler(Filters.text, check_notion_username),
+        ],
+        States.ASK_CONV_OPEN: [
+            MessageHandler(Filters.text([text["back"]]), check_username),
+            MessageHandler(Filters.text([text["yes"], text["no"]]), registration_final)
+        ]
         # -----------------------------------------------------------
         # Admin
         # -----------------------------------------------------------

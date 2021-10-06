@@ -55,8 +55,8 @@ class Contacts(Base):
     __tablename__ = "contacts"
 
     id = Column(Integer, primary_key=True)
-    user_one = Column(Integer, ForeignKey("user.chat_id"))
-    user_two = Column(Integer, ForeignKey("user.chat_id"))
+    user_one = Column(BigInteger, ForeignKey("user.chat_id"))
+    user_two = Column(BigInteger, ForeignKey("user.chat_id"))
 
     user_one_name = relationship("User", backref="contacts_one", foreign_keys=[user_one])
     user_two_name = relationship("User", backref="contacts_two", foreign_keys=[user_two])
@@ -71,7 +71,7 @@ class UserTag(Base):
     __tablename__ = "user_tag"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.chat_id"))
+    user_id = Column(BigInteger, ForeignKey("user.chat_id"))
     tag_id = Column(Integer, ForeignKey("tag.id"))
 
     user = relationship("User", backref="user_tag_user", foreign_keys=[user_id])
@@ -101,8 +101,8 @@ class ConversationRequest(Base):
     __tablename__ = "conversation_request"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("user.chat_id"))
-    user_found = Column(Integer, ForeignKey("user.chat_id"))
+    user_id = Column(BigInteger, ForeignKey("user.chat_id"))
+    user_found = Column(BigInteger, ForeignKey("user.chat_id"))
     tags = Column(JSONB)
     active = Column(Boolean)
     time_posted = Column(DateTime)

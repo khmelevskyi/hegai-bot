@@ -46,18 +46,20 @@ class Mixin:
         Create user record if not exist, otherwise update username
         """
         user = session.query(User).get(chat_id)
-        if user:
+        if user.notion_id:
             return True
         return False
 
     @local_session
-    def add_user_data(self, session, chat: Chat, university_id: int, data: dict):
+    def add_user_data(self, session, chat: Chat, notion_id: str, username: str, conversation_open):
         """ save user settings for api request """
-
+        
         chat_id = chat.id
+
         user = session.query(User).get(chat_id)
         if not user:
             user = self.add_user(chat)
-        user.university_id = university_id
-        user.user_data = data
+        user.notion_id = notion_id
+        user.username = username
+        user.conversation_open = conversation_open
         session.commit()

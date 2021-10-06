@@ -32,8 +32,9 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     #     }
     #     return engine
 
-    def get_user_data(self, session, chat_id: int) -> Tuple[int, dict]:
-        """ return universi_id and user date for engine.API call """
+    @local_session
+    def get_user_data(self, session, chat_id: int) -> User:
+        """ returns user by chat_id """
         user = (
             session.query(User)
             .get(chat_id)

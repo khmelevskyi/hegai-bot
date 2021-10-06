@@ -11,5 +11,7 @@ class States(Enum):
 
     ACCOUNT = 2
 
-    CITY = 3
+    ASK_USERNAME = 3
+
+    ASK_CONV_OPEN = 4
 
