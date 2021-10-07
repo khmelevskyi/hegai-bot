@@ -15,3 +15,11 @@ class States(Enum):
 
     ASK_CONV_OPEN = 4
 
+    CHANGE_NAME = 5
+
+    CHANGE_REGION = 6
+
+    CHANGE_STATUS = 7
+
+    CREATE_REGION = 8
+

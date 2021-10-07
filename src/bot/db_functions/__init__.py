@@ -8,6 +8,7 @@ from . import _registration
 from ..hegai_db import Action
 from ..hegai_db import User
 from ..hegai_db import UserAction
+from ..hegai_db import Region
 from ._utils import local_session
 
 
@@ -40,6 +41,43 @@ class DBSession(_admin.Mixin, _registration.Mixin):
             .get(chat_id)
         )
         return user
+
+    @local_session
+    def get_all_regions(self, session) -> List[Region]:
+        """ gets all regions """
+        regions = session.query(Region).all()
+        return regions
+
+    @local_session
+    def create_region(self, session, new_region) -> None:
+        """ creates a new region """
+        region = Region(name=new_region)
+        session.add(region)
+        session.commit()
+
+    @local_session
+    def save_new_name(self, session, chat_id, new_name) -> None:
+        """ saves user's new name to db """
+        user = session.query(User).get(chat_id)
+        user.full_name = new_name
+        session.commit()
+    
+    @local_session
+    def save_new_region(self, session, chat_id, new_region) -> None:
+        """ saves user's new name to db """
+        user = session.query(User).get(chat_id)
+        user.region = new_region
+        session.commit()
+    
+    @local_session
+    def save_new_status(self, session, chat_id) -> None:
+        """ saves user's new name to db """
+        user = session.query(User).get(chat_id)
+        if user.conversation_open == True:
+            user.conversation_open = False
+        else:
+            user.conversation_open == True
+        session.commit()
 
     @local_session
     def ban_user(self, session, chat_id: int) -> None:
