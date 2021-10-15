@@ -8,7 +8,6 @@ from sqlalchemy import BigInteger
 from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy import DateTime
-from sqlalchemy import Float
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import MetaData
@@ -55,8 +54,8 @@ class Contacts(Base):
     __tablename__ = "contacts"
 
     id = Column(Integer, primary_key=True)
-    user_one = Column(BigInteger, ForeignKey("user.chat_id"))
-    user_two = Column(BigInteger, ForeignKey("user.chat_id"))
+    user_one = Column(Integer, ForeignKey("user.id"))
+    user_two = Column(Integer, ForeignKey("user.id"))
 
     user_one_name = relationship("User", backref="contacts_one", foreign_keys=[user_one])
     user_two_name = relationship("User", backref="contacts_two", foreign_keys=[user_two])
@@ -71,7 +70,7 @@ class UserTag(Base):
     __tablename__ = "user_tag"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(BigInteger, ForeignKey("user.chat_id"))
+    user_id = Column(Integer, ForeignKey("user.id"))
     tag_id = Column(Integer, ForeignKey("tag.id"))
 
     user = relationship("User", backref="user_tag_user", foreign_keys=[user_id])
@@ -101,8 +100,8 @@ class ConversationRequest(Base):
     __tablename__ = "conversation_request"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(BigInteger, ForeignKey("user.chat_id"))
-    user_found = Column(BigInteger, ForeignKey("user.chat_id"))
+    user_id = Column(Integer, ForeignKey("user.id"))
+    user_found = Column(Integer, ForeignKey("user.id"))
     tags = Column(JSONB)
     active = Column(Boolean)
     time_posted = Column(DateTime)
@@ -141,7 +140,8 @@ class User(Base):
 
     __tablename__ = "user"
 
-    chat_id = Column(BigInteger, primary_key=True)
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(BigInteger)
     notion_id = Column(String)
     conversation_open = Column(Boolean)
     is_banned = Column(Boolean)
@@ -163,12 +163,12 @@ class Admin(Base):
 
     __tablename__ = "admin"
 
-    chat_id = Column(BigInteger, ForeignKey("user.chat_id"), primary_key=True)
+    id = Column(Integer, ForeignKey("user.id"), primary_key=True)
 
-    user = relationship("User", backref="admin", foreign_keys=[chat_id])
+    user = relationship("User", backref="admin", foreign_keys=[id])
 
     def __repr__(self):
-        return "<Admin(chat_id='{}')>".format(self.chat_id)
+        return "<Admin(chat_id='{}')>".format(self.id)
 
 
 class Permission(Enum):
@@ -188,18 +188,18 @@ class UserAction(Base):
     __tablename__ = "user_action"
 
     id = Column(Integer, primary_key=True)
-    chat_id = Column(BigInteger, ForeignKey("user.chat_id"))
+    user_id = Column(BigInteger, ForeignKey("user.id"))
     action = Column(Integer, ForeignKey("action.id"))
     time_clicked = Column(DateTime(timezone=True), default=local_time)
 
-    user = relationship("User", backref="user_action", foreign_keys=[chat_id])
+    user = relationship("User", backref="user_action", foreign_keys=[user_id])
     action_name = relationship(
         "Action", backref="user_action_name", foreign_keys=[action]
     )
 
     def __repr__(self):
         return "<Action(id='{}', chat_id='{}', action='{}', time='{}')>".format(
-            self.id, self.chat_id, self.action, self.time_clicked
+            self.id, self.user_id, self.action, self.time_clicked
         )
 
 

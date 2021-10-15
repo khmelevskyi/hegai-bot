@@ -13,7 +13,10 @@ new_path = os.path.join(directory_path, "texts.json")
 with open(new_path, "r", encoding="utf-8") as fp:
     text = json.load(fp)
 
-start_keyboard = [[text["admin_menu"]], [text["profile"]]]
+start_keyboard = [
+    [text["profile"], text["find_conv"]],
+    [text["my_contacts"], text["connect_admin"]]
+]
 
 who_keyboard = [[text["student_q"], text["teacher_q"]], [text["back"]]]
 

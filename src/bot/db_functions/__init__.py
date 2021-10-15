@@ -38,7 +38,16 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         """ returns user by chat_id """
         user = (
             session.query(User)
-            .get(chat_id)
+            .filter(User.chat_id==chat_id).first()
+        )
+        return user
+
+    @local_session
+    def get_user_data_by_username(self, session, username: str) -> User:
+        """ returns user by username """
+        user = (
+            session.query(User)
+            .filter(User.username==username).first()
         )
         return user
 
@@ -47,6 +56,12 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         """ gets all regions """
         regions = session.query(Region).all()
         return regions
+
+    @local_session
+    def get_region(self, session, region_id) -> Region:
+        """ gets a region object by id """
+        region = session.query(Region).get(region_id)
+        return region
 
     @local_session
     def create_region(self, session, new_region) -> None:
@@ -58,32 +73,32 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     @local_session
     def save_new_name(self, session, chat_id, new_name) -> None:
         """ saves user's new name to db """
-        user = session.query(User).get(chat_id)
+        user = session.query(User).filter(User.chat_id==chat_id).first()
         user.full_name = new_name
         session.commit()
     
     @local_session
     def save_new_region(self, session, chat_id, new_region) -> None:
         """ saves user's new name to db """
-        user = session.query(User).get(chat_id)
+        user = session.query(User).filter(User.chat_id==chat_id).first()
         user.region = new_region
         session.commit()
     
     @local_session
     def save_new_status(self, session, chat_id) -> None:
         """ saves user's new name to db """
-        user = session.query(User).get(chat_id)
+        user = session.query(User).filter(User.chat_id==chat_id).first()
         if user.conversation_open == True:
             user.conversation_open = False
         else:
-            user.conversation_open == True
+            user.conversation_open = True
         session.commit()
 
     @local_session
     def ban_user(self, session, chat_id: int) -> None:
         """ user banned the bot """
 
-        user = session.query(User).get(chat_id)
+        user = session.query(User).filter(User.chat_id==chat_id).first()
         if user and user.is_banned is False:
             user.is_banned = True
             session.commit()
@@ -92,7 +107,7 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     def unban_user(self, session, chat_id: int) -> None:
         """ user started conversation after ban """
 
-        user = session.query(User).get(chat_id)
+        user = session.query(User).filter(User.chat_id==chat_id).first()
         if user.is_banned is True:
             user.is_banned = False
             session.commit()

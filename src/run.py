@@ -15,6 +15,7 @@ from telegram.ext import Updater
 from bot.conv_handlers import conv_handler
 from bot.handlers import error_handler
 from bot.handlers import echo
+from bot.handlers import ask_feedback
 
 # configure_logger()
 load_dotenv()
@@ -50,10 +51,11 @@ def main():
         # crone jobs
         # ==========
 
-        # j = updater.job_queue
+        j = updater.job_queue
 
-        # callback_time = timedelta(minutes=30)
-        # j.run_repeating(callback=clean_users, interval=callback_time, first=0)
+        # callback_time = timedelta(seconds=30)
+        # j.run_repeating(callback=ask_feedback, interval=callback_time, first=0)
+
 
         # message handlers
         # ================

@@ -17,7 +17,7 @@ class Mixin:
         username = chat.username
         first_name = chat.first_name
 
-        user = session.query(User).get(chat_id)
+        user = session.query(User).filter(User.chat_id==chat_id).first()
         if user:
             if user.username != username:
                 user.username = username
@@ -45,7 +45,7 @@ class Mixin:
         """
         Create user record if not exist, otherwise update username
         """
-        user = session.query(User).get(chat_id)
+        user = session.query(User).filter(User.chat_id==chat_id).first()
         if user.notion_id:
             return True
         return False
@@ -56,7 +56,7 @@ class Mixin:
         
         chat_id = chat.id
 
-        user = session.query(User).get(chat_id)
+        user = session.query(User).filter(User.chat_id==chat_id).first()
         if not user:
             user = self.add_user(chat)
         user.notion_id = notion_id

@@ -35,11 +35,17 @@ def profile(update: Update, context: CallbackContext):
         conv_open = "Открыт к разговору"
     else:
         conv_open = "Не открыт к разговору"
+    
+    if user.region != None:
+        region_name = db_session.get_region(user.region).name
+    else:
+        region_name = "Не указан"
+
     div = 30
     info = (
         f"<i>{user.full_name}</i>\n"
         + f"{text['account_n']} @{user.username}\n"
-        + f"Регион: {user.region}\n"
+        + f"Регион: {region_name}\n"
         + f"<i>id </i>: {chat_id}\n"
         # + f"<i>notion id </i>: {user.notion_id}\n"
         + "-" * div

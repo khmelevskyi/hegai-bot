@@ -23,3 +23,9 @@ class States(Enum):
 
     CREATE_REGION = 8
 
+    FIND_CONVERSATION = 9
+
+    ASK_FEEDBACK = 10
+
+    SAVE_FEEDBACK = 11
+

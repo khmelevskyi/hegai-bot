@@ -21,6 +21,11 @@ from .handlers import change_status
 from .handlers import change_status_save
 from .handlers import create_region
 from .handlers import create_region_save
+from .handlers import ask_conv_filters
+from .handlers import find_conversation
+# from .handlers import ask_feedback
+from .handlers import ask_feedback_result
+from .handlers import save_feedback
 from .states import States
 
 
@@ -34,7 +39,8 @@ from .states import States
 #     filters=admin_filters,
 # )
 necessary_handlers = [
-    CommandHandler("start", start),
+    CommandHandler("start", start, pass_job_queue=True),
+    CommandHandler("admin", admin),
     CommandHandler("new_region", create_region)
     # admin_handler,
 ]
@@ -49,8 +55,10 @@ conv_handler = ConversationHandler(
         # -----------------------------------------------------------
         States.MENU: [
             *necessary_handlers,
-            MessageHandler(Filters.text([text["admin_menu"]]), admin),
             MessageHandler(Filters.text([text["profile"]]), profile),
+            MessageHandler(Filters.text([text["find_conv"]]), ask_conv_filters, pass_job_queue=True),
+            MessageHandler(Filters.text([text["my_contacts"]]), admin),
+            MessageHandler(Filters.text([text["connect_admin"]]), admin),
         ],
         States.ACCOUNT: [
             *necessary_handlers,
@@ -79,6 +87,19 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text([text["cancel"]]), start),
             MessageHandler(Filters.text, create_region_save)
         ],
+        States.FIND_CONVERSATION: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["cancel"]]), start),
+            MessageHandler(Filters.text, find_conversation, pass_job_queue=True)
+        ],
+        States.ASK_FEEDBACK: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["yes"], text["no"]]), ask_feedback_result)
+        ],
+        States.SAVE_FEEDBACK: [
+            *necessary_handlers,
+            MessageHandler(Filters.text(["1", "2", "3", "4", "5"]), save_feedback)
+        ],
         # -----------------------------------------------------------
         # Registration
         # -----------------------------------------------------------
@@ -91,7 +112,7 @@ conv_handler = ConversationHandler(
             *necessary_handlers,
             MessageHandler(Filters.text([text["back"]]), check_username),
             MessageHandler(Filters.text([text["yes"], text["no"]]), registration_final)
-        ]
+        ],
         # -----------------------------------------------------------
         # Admin
         # -----------------------------------------------------------

@@ -28,7 +28,7 @@ class Mixin:
 
         admins = {
             i[0]: (i[1], i[2])
-            for i in session.query(Admin.chat_id)
+            for i in session.query(Admin.id)
             .all()
         }
         return admins
@@ -38,11 +38,11 @@ class Mixin:
     def set_user(self, session, admin_id: int, chat_id: int) -> Tuple[bool, str]:
         """ drop user from all tables """
 
-        user = session.query(User).get(chat_id)
+        user = session.query(User).filter(User.chat_id==chat_id).first()
         if not user:
             return (True, f"User with id: {chat_id} not exist")
 
-        admin = session.query(User).get(admin_id)
+        admin = session.query(User).filter(User.chat_id==admin_id).first()
 
         try:
             admin.university_id = user.university_id
@@ -51,7 +51,7 @@ class Mixin:
         except Exception as error:
             session.rollback()
             return (True, f"Failed with:\n\n{error}")
-        return (False, f"Set profile of user with id: {chat_id}")
+        return (False, f"Set profile of user with chat_id: {chat_id}")
 
     @local_session
     def drop_user_cascade(self, session, chat_id: int) -> Tuple[bool, str]:
@@ -60,7 +60,7 @@ class Mixin:
         if chat_id in self.admins.keys():
             return (True, f"User with id: {chat_id} is Admin")
 
-        user = session.query(User).get(chat_id)
+        user = session.query(User).filter(User.chat_id==chat_id).first()
 
         if not user:
             return (True, f"User with id: {chat_id} not exist")
