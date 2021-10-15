@@ -4,3 +4,4 @@ from .conversation import find_conversation
 from .feedback import ask_feedback
 from .feedback import ask_feedback_result
 from .feedback import save_feedback
+from .contacts import my_contacts

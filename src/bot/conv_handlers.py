@@ -26,6 +26,7 @@ from .handlers import find_conversation
 # from .handlers import ask_feedback
 from .handlers import ask_feedback_result
 from .handlers import save_feedback
+from .handlers import my_contacts
 from .states import States
 
 
@@ -57,7 +58,7 @@ conv_handler = ConversationHandler(
             *necessary_handlers,
             MessageHandler(Filters.text([text["profile"]]), profile),
             MessageHandler(Filters.text([text["find_conv"]]), ask_conv_filters, pass_job_queue=True),
-            MessageHandler(Filters.text([text["my_contacts"]]), admin),
+            MessageHandler(Filters.text([text["my_contacts"]]), my_contacts),
             MessageHandler(Filters.text([text["connect_admin"]]), admin),
         ],
         States.ACCOUNT: [

@@ -3,6 +3,8 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
+from bot.hegai_db.models.db_models import Contacts, Tag
+
 from . import _admin
 from . import _registration
 from ..hegai_db import Action
@@ -41,6 +43,12 @@ class DBSession(_admin.Mixin, _registration.Mixin):
             .filter(User.chat_id==chat_id).first()
         )
         return user
+    
+    @local_session
+    def get_user_data_by_id(self, session, id: int) -> User:
+        """ returns user by id """
+        user = session.query(User).get(id)
+        return user
 
     @local_session
     def get_user_data_by_username(self, session, username: str) -> User:
@@ -50,6 +58,43 @@ class DBSession(_admin.Mixin, _registration.Mixin):
             .filter(User.username==username).first()
         )
         return user
+
+    @local_session
+    def get_user_data_by_notion_id(self, session, notion_id: str) -> User:
+        """ returns user by notion_id """
+        user = (
+            session.query(User)
+            .filter(User.notion_id==notion_id).first()
+        )
+        return user
+
+    @local_session
+    def get_contacts(self, session, id: int) -> List:
+        """ returns user's contact's ids """
+        contacts = (
+            session.query(Contacts.user_two)
+            .filter(Contacts.user_one==id).all()
+        )
+        return contacts
+    
+    @local_session
+    def add_contacts(self, session, user_one_id: int, user_two_id: int) -> None:
+        """ adds a contacts row to db """
+        new_contacts = Contacts(
+            user_one=user_one_id,
+            user_two=user_two_id
+        )
+        session.add(new_contacts)
+        session.commit()
+
+    @local_session
+    def get_tag_by_notion_id(self, session, notion_id: str) -> Tag:
+        """ returns tag by notion_id """
+        tag = (
+            session.query(Tag)
+            .filter(Tag.notion_id==notion_id).first()
+        )
+        return tag
 
     @local_session
     def get_all_regions(self, session) -> List[Region]:
