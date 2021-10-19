@@ -66,6 +66,17 @@ def stop(update: Update, context: CallbackContext):
     db_session.ban_user(chat_id)
     return ConversationHandler.END
 
+def connect_to_admin(update: Update, context: CallbackContext):
+    """ sends user a link to admin """
+
+    chat_id = update.message.chat.id
+    context.bot.send_message(
+        chat_id=chat_id,
+        text=(
+            "Напишите нам сюда ➡ @support"
+        ),
+    )
+
 
 def echo(update: Update, context: CallbackContext):
     """ echo all msgs"""

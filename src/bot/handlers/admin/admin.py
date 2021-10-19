@@ -1,6 +1,6 @@
 """ basic single functions and admin menu """
 from telegram import ParseMode
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram import Update
 from telegram.ext import CallbackContext
 
@@ -15,8 +15,8 @@ def admin_keyboard_markup() -> ReplyKeyboardMarkup:
     """ returns admin keyboard layout """
 
     admin_keyboard = [
-        [text["see_uni"], text["change_uni"]],
-        [text["add_room"], text["tag_map"]],
+        [text["push_mssg"]],
+        [text["stats"]],
         [text["back"]],
     ]
     markup = ReplyKeyboardMarkup(keyboard=admin_keyboard, resize_keyboard=True)
@@ -35,6 +35,103 @@ def admin(update: Update, context: CallbackContext):
         parse_mode=ParseMode.HTML,
     )
     return States.ADMIN_MENU
+
+def push_mssg(update: Update, context: CallbackContext):
+    """ asks wether to send a mssg to moscow ppl, all ppl """
+
+    chat_id = update.message.chat.id
+
+    reply_keyboard = [
+        ["Только москвичи"],
+        ["Все"],
+        [text["cancel"]],
+    ]
+    markup = ReplyKeyboardMarkup(keyboard=reply_keyboard, resize_keyboard=True)
+
+    context.bot.send_message(
+        chat_id=chat_id,
+        text="Выберите кому отправить сообщение:",
+        reply_markup=markup,
+        parse_mode=ParseMode.HTML,
+    )
+    return States.PUSH_MSSG_ADD_TEXT
+
+def push_mssg_ask_text(update: Update, context: CallbackContext):
+    """ asks wether to send a mssg to moscow ppl, all ppl """
+
+    chat_id = update.message.chat.id
+    mssg = update.message.text
+    context.user_data["push_address"] = mssg
+
+    reply_keyboard = [
+        [text["cancel"]],
+    ]
+    markup = ReplyKeyboardMarkup(keyboard=reply_keyboard, resize_keyboard=True)
+
+    context.bot.send_message(
+        chat_id=chat_id,
+        text="Напишите текст сообщения:",
+        reply_markup=markup,
+        parse_mode=ParseMode.HTML,
+    )
+    return States.PUSH_MSSG_ADD_IMG
+
+def push_mssg_ask_img(update: Update, context: CallbackContext):
+    """ asks wether to send a mssg to moscow ppl, all ppl """
+
+    chat_id = update.message.chat.id
+    mssg = update.message.text
+    context.user_data["push_text"] = mssg
+
+    reply_keyboard = [
+        [text["skip"]],
+        [text["cancel"]]
+    ]
+    markup = ReplyKeyboardMarkup(keyboard=reply_keyboard, resize_keyboard=True)
+
+    context.bot.send_message(
+        chat_id=chat_id,
+        text="Добавьте фотографию:",
+        reply_markup=markup,
+        parse_mode=ParseMode.HTML,
+    )
+    return States.PUSH_MSSG_FINAL
+
+def push_mssg_final(update: Update, context: CallbackContext):
+    """ pass """
+
+    img = update.message.photo
+    print(img)
+    push_text = context.user_data.pop("push_text")
+    push_address = context.user_data.pop("push_address")
+
+    if push_address == "Только москвичи":
+        users = db_session.get_all_users_by_region("Москва")
+        users += db_session.get_all_users_by_region("Moscow")
+    else:
+        users = db_session.get_all_users()
+
+    for user in users:
+        print(user)
+        chat_id = user.chat_id
+        if chat_id == None:
+            continue
+
+        if img == []:
+            context.bot.send_message(
+                chat_id=chat_id,
+                text=push_text,
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            context.bot.send_photo(
+                chat_id=chat_id,
+                photo=img[0],
+                caption=push_text,
+                parse_mode=ParseMode.HTML
+            )
+
+    return admin(update, context)
 
 
 def drop_user(update: Update, context: CallbackContext):

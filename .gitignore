@@ -141,6 +141,9 @@ cert.pem
 
 settings.py*
 
+*.log
+*.log.zip
+
 # Sphinx documentation
 docs/source/_autosummary/*
 

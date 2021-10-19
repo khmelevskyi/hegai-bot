@@ -29,3 +29,11 @@ class States(Enum):
 
     SAVE_FEEDBACK = 11
 
+    ADD_USER_TAG = 12
+
+    PUSH_MSSG_ADD_TEXT = 13
+
+    PUSH_MSSG_ADD_IMG = 14
+
+    PUSH_MSSG_FINAL = 15
+

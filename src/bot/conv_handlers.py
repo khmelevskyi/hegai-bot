@@ -10,6 +10,8 @@ from .handlers import start
 from .handlers import stop
 from .handlers import admin
 from .handlers import profile
+from .handlers import connect_to_admin
+from .handlers import push_mssg
 from .handlers import check_notion_username
 from .handlers import check_username
 from .handlers import registration_final
@@ -22,11 +24,15 @@ from .handlers import change_status_save
 from .handlers import create_region
 from .handlers import create_region_save
 from .handlers import ask_conv_filters
+from .handlers import add_user_tag
 from .handlers import find_conversation
 # from .handlers import ask_feedback
 from .handlers import ask_feedback_result
 from .handlers import save_feedback
 from .handlers import my_contacts
+from .handlers import push_mssg_ask_img
+from .handlers import push_mssg_ask_text
+from .handlers import push_mssg_final
 from .states import States
 
 
@@ -59,7 +65,7 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text([text["profile"]]), profile),
             MessageHandler(Filters.text([text["find_conv"]]), ask_conv_filters, pass_job_queue=True),
             MessageHandler(Filters.text([text["my_contacts"]]), my_contacts),
-            MessageHandler(Filters.text([text["connect_admin"]]), admin),
+            MessageHandler(Filters.text([text["connect_admin"]]), connect_to_admin),
         ],
         States.ACCOUNT: [
             *necessary_handlers,
@@ -87,6 +93,11 @@ conv_handler = ConversationHandler(
             *necessary_handlers,
             MessageHandler(Filters.text([text["cancel"]]), start),
             MessageHandler(Filters.text, create_region_save)
+        ],
+        States.ADD_USER_TAG: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["cancel"]]), start),
+            MessageHandler(Filters.text, add_user_tag)
         ],
         States.FIND_CONVERSATION: [
             *necessary_handlers,
@@ -117,10 +128,27 @@ conv_handler = ConversationHandler(
         # -----------------------------------------------------------
         # Admin
         # -----------------------------------------------------------
-        # States.CITY: [
-        #     MessageHandler(Filters.text([text["back"]]), profile),
-        #     MessageHandler(Filters.text, ask_university),
-        # ],
+        States.ADMIN_MENU: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["back"]]), start),
+            MessageHandler(Filters.text([text["push_mssg"]]), push_mssg),
+        ],
+        States.PUSH_MSSG_ADD_TEXT: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["cancel"]]), admin),
+            MessageHandler(Filters.text, push_mssg_ask_text),
+        ],
+        States.PUSH_MSSG_ADD_IMG: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["cancel"]]), admin),
+            MessageHandler(Filters.text, push_mssg_ask_img),
+        ],
+        States.PUSH_MSSG_FINAL: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["cancel"]]), admin),
+            MessageHandler(Filters.text, push_mssg_final),
+            MessageHandler(Filters.photo, push_mssg_final),
+        ],
     },
     fallbacks=[CommandHandler("stop", stop)],
 )

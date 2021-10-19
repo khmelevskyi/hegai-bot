@@ -29,8 +29,8 @@ def my_contacts(update: Update, context: CallbackContext):
     
     contacts_info = ""
     for ii in contacts:
-        user = db_session.get_user_data(ii)
-        contacts_info += f"{user.full_name} - {user.username}\n"
+        user = db_session.get_user_data_by_id(ii)
+        contacts_info += f"{user.full_name} - @{user.username}\n"
         contacts_info += f"{('~'*30)}\n"
 
     if contacts == []:

@@ -72,6 +72,8 @@ class NotionSync:
                         url = url.replace("https://t.me/", "")
                     elif "t.me" in url and "https" not in url:
                         url = url.replace("t.me/", "")
+                    elif "http" in url:
+                        url = url.replace("https://", "")
                     elif "@" in url:
                         url = url.replace("@", "")
                     self.properties_data["username"].append(url)
@@ -101,21 +103,22 @@ while has_more == True:
     properties_data = nsync.get_properties_data(data, properties)
 
 
-def check_existence(username):
-    query = "SELECT EXISTS (SELECT 1 FROM public.user WHERE username = %s);"
-    return list(engine.execute(query,  (username, ) ) )[0][0] == 1
+def check_existence(notion_id):
+    query = f"SELECT EXISTS (SELECT 1 FROM public.user WHERE notion_id = '{notion_id}');"
+    return list(engine.execute(query, ) )[0][0] == 1
 
 
 users_df = pd.DataFrame.from_dict(properties_data)
 print(users_df)
 
 
-def update_object(obj, new_obj, username):
+def update_object(obj, new_obj, notion_id):
     obj_dict = obj.__dict__
     dict_keys = new_obj.keys()
     for dict_key in dict_keys:
         if obj_dict[dict_key] != new_obj[dict_key]:
-            query = f"UPDATE public.user SET {dict_key} = '{new_obj[dict_key]}' WHERE username = '{username}';"
+            query = f"UPDATE public.user SET {dict_key} = '{new_obj[dict_key]}' WHERE notion_id = '{notion_id}';"
+            # print(query)
             engine.execute(query, )
         else:
             pass
@@ -124,17 +127,18 @@ def object_to_sql(new_obj):
     dict_keys = new_obj.keys()
     str_t = str(tuple([dict_key for dict_key in dict_keys])).replace("'", "")
     query = f"INSERT INTO public.user {str_t} VALUES{tuple([str(new_obj[dict_key]) for dict_key in dict_keys])};"
+    # print(query)
     engine.execute(query, )
     
 
 for indx, ii in users_df.iterrows():
-    username = ii["username"]
-    # print(username)
-    is_exists = check_existence(username)
+    notion_id = ii["notion_id"]
+    # print(notion_id)
+    is_exists = check_existence(notion_id)
     # print(is_exists)
     if is_exists == True:
-        user = db_session.get_user_data_by_username(username)
-        update_object(user, ii, username)
+        user = db_session.get_user_data_by_notion_id(notion_id)
+        update_object(user, ii, notion_id)
     elif is_exists == False:
         object_to_sql(ii)
 

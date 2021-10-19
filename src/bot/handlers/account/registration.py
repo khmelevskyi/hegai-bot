@@ -45,6 +45,8 @@ def check_notion_username(update: Update, context: CallbackContext):
 
     default_list = json.loads(os.getenv("default_list"))
 
+    all_usernames = db_session.get_all_usernames()
+
     chat_id = update.message.chat.id
     username = update.message.chat.username
 
@@ -54,8 +56,9 @@ def check_notion_username(update: Update, context: CallbackContext):
         if "@" in username:
             username = username.replace("@", "")
 
-    if username in default_list:
-        notion_id = 1
+    if username in all_usernames or username in default_list:
+        if username in default_list:
+            notion_id = 1
         users[chat_id]["username"] = username
         users[chat_id]["notion_id"] = notion_id
         reply_keyboard = [

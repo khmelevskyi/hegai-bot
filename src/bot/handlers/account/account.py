@@ -41,6 +41,13 @@ def profile(update: Update, context: CallbackContext):
     else:
         region_name = "Не указан"
 
+    user_tags = db_session.get_user_tags(chat_id)
+    user_tags_names = []
+    for user_tag in user_tags:
+        tag_name = db_session.get_tag(user_tag.tag_id).name
+        user_tags_names.append(tag_name)
+    user_tags_names = str(user_tags_names).replace("'", "").replace("[", "").replace("]", "")
+
     div = 30
     info = (
         f"<i>{user.full_name}</i>\n"
@@ -50,6 +57,7 @@ def profile(update: Update, context: CallbackContext):
         # + f"<i>notion id </i>: {user.notion_id}\n"
         + "-" * div
         + f"\nСтатус: <b>{conv_open}</b>\n"
+        + f"\nТеги: {user_tags_names}\n"
         # + f"\nС нами с: {user.time_registered}\n"
         + "~" * (div // 2)
         + "\n"
