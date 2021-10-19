@@ -18,15 +18,6 @@ start_keyboard = [
     [text["my_contacts"], text["connect_admin"]]
 ]
 
-who_keyboard = [[text["student_q"], text["teacher_q"]], [text["back"]]]
-
-days_keyboard = [
-    # [text["now"]],
-    [text["today"], text["tomorrow"]],
-    [text["week"], text["next_week"]],
-    [text["share_button"], text["profile"]],
-]
-
 URL_BUTTON_REGEX = re.compile(
     r"\s*~ ((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]"
     r"+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*"

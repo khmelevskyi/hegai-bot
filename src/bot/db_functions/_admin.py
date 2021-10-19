@@ -26,11 +26,7 @@ class Mixin:
     def get_admins(self, session) -> Dict[int, Tuple[str, dict]]:
         """ list of admin ids """
 
-        admins = {
-            i[0]: (i[1], i[2])
-            for i in session.query(Admin.id)
-            .all()
-        }
+        admins = [ i[0] for i in session.query(Admin.id).all() ]
         return admins
 
 
@@ -130,12 +126,6 @@ class Mixin:
         )
 
         total_users = session.query(User)
-        students = total_users.filter(
-            User.user_data["type"].astext == "student"
-        ).count()
-        teachers = total_users.filter(
-            User.user_data["type"].astext == "teacher"
-        ).count()
         total_users = total_users.count()
 
         not_banned = session.query(User).filter(User.is_banned == false()).count()
@@ -148,7 +138,6 @@ class Mixin:
                 month_actions.count(),
             ],
             "active_users": [day_users, week_users, month_users],
-            "total_users": [total_users, students, teachers],
             "banned": [not_banned, total_users],
         }
 

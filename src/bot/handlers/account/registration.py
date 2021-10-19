@@ -9,7 +9,6 @@ from telegram.ext import CallbackContext
 
 # from ...admins import ADMINS
 from ...data import text
-from ...data import who_keyboard
 from ...states import States
 from ...db_functions import db_session
 # from ...utils import cached_data

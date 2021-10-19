@@ -224,14 +224,19 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         session.commit()
 
     @local_session
-    def update_conv_request(self, session, conv_request, user_found, user_tags) -> None:
+    def update_conv_request(self, session, conv_request, user_found, user_tags=None) -> None:
         """ updates a conv request """
         conv_request_id = conv_request.id
         conv_request = session.query(ConversationRequest).get(conv_request_id)
-        conv_request.user_found = user_found.id
-        conv_request.tags = user_tags
-        conv_request.active = False
-        conv_request.time_processed = local_time()
+        if user_tags == None:
+            conv_request.user_found = user_found.id
+            conv_request.active = False
+            conv_request.time_processed = local_time()
+        else:
+            conv_request.user_found = user_found.id
+            conv_request.tags = user_tags
+            conv_request.active = False
+            conv_request.time_processed = local_time()
         session.commit()
 
 

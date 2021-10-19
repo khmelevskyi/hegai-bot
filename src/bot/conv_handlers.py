@@ -4,10 +4,12 @@ from telegram.ext import ConversationHandler
 from telegram.ext import Filters
 from telegram.ext import MessageHandler
 
-# from .admins import ADMINS
+from .admins import ADMINS
+from .db_functions import db_session
 from .data import text
 from .handlers import start
 from .handlers import stop
+from .handlers import support_reply
 from .handlers import admin
 from .handlers import profile
 from .handlers import connect_to_admin
@@ -36,21 +38,35 @@ from .handlers import push_mssg_final
 from .states import States
 
 
-# ADMIN_IDS = list(ADMINS.keys())
+ADMIN_IDS = [ db_session.get_user_data_by_id(admin_id).chat_id for admin_id in ADMINS ]
 
-# admin_filters = Filters.user(ADMIN_IDS) & Filters.chat_type.private
+admin_filters = Filters.user(ADMIN_IDS) & Filters.chat_type.private
 
-# admin_handler = CommandHandler(
-#     "admin",
-#     admin,
-#     filters=admin_filters,
-# )
+admin_handler = CommandHandler(
+    "admin",
+    admin,
+    filters=admin_filters,
+)
 necessary_handlers = [
     CommandHandler("start", start, pass_job_queue=True),
-    CommandHandler("admin", admin),
+    admin_handler,
     CommandHandler("new_region", create_region)
-    # admin_handler,
 ]
+
+support_handler = ConversationHandler(
+    name="conversation_support",
+    persistent=True,
+    entry_points=[
+        MessageHandler(Filters.reply, support_reply)
+    ],
+    states={
+        States.SUPPORT_REPLY: [
+            *necessary_handlers,
+            MessageHandler(Filters.text, support_reply)
+        ]
+    },
+    fallbacks=[CommandHandler("stop", stop)]
+)
 
 conv_handler = ConversationHandler(
     name="conversation",

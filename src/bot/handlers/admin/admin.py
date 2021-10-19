@@ -6,7 +6,7 @@ from telegram.ext import CallbackContext
 
 from ...hegai_db import Permission
 from ...db_functions import db_session
-# from ..admins import ADMINS
+from ...admins import ADMINS
 from ...data import text
 from ...states import States
 
@@ -30,7 +30,7 @@ def admin(update: Update, context: CallbackContext):
     university = "uni" # cached_data.list_universities()[university_id][0]
     context.bot.send_message(
         chat_id=chat_id,
-        text=text["hi_admin"].format(university, "admin"), # ADMINS[chat_id][0]
+        text=text["hi_admin"], # ADMINS[chat_id][0]
         reply_markup=admin_keyboard_markup(),
         parse_mode=ParseMode.HTML,
     )
@@ -178,4 +178,37 @@ def set_user(update: Update, context: CallbackContext):
             chat_id=update.message.chat.id,
             text=full_msg,
         )
+
+
+def everyday_news(*args):
+    """ collects and sends general data analitics """
+    statistics = db_session.get_statistics()
+
+    news_msg = (
+        "За день | неделю | месяц:\n\n"
+        + "<b>Новых  пользователей</b>\n"
+        + "• {} | {} | {}\n\n".format(*statistics["new_users"])
+        + "<b>Новых действий</b>\n"
+        + "• {} | {} | {}\n\n".format(*statistics["actions"])
+        + "<b>Активных  пользователей</b>\n"
+        + "• {} | {} | {}\n\n".format(*statistics["active_users"])
+        + "\nВсего {} пользователей:\n".format(statistics["total_users"][0])
+    )
+
+    admin_ids = ADMINS
+
+    if len(args) == 1:  # depends if it called by job_queue or updater
+        context = args[0]
+
+        for admin_id in admin_ids:
+            user_chat_id = db_session.get_user_data_by_id(admin_id).chat_id
+            context.bot.send_message(chat_id=user_chat_id, text=news_msg)
+    else:
+        update, context = args[0], args[1]
+
+        admin_ids = [update.message.chat.id]
+
+        for admin_id in admin_ids:
+            context.bot.send_message(chat_id=admin_id, text=news_msg)
+
 
