@@ -1,14 +1,11 @@
-# import os
-# import pprint
 import pandas as pd
 from bot.db_functions import db_session
-# from tabulate import tabulate
 
 from sqlalchemy import create_engine
 
 engine = create_engine('postgresql://postgres:dsfdfe34@localhost:5432/hegai-bot')
 
-users_df = pd.read_csv("paches/meetings.csv", usecols=["user_id", "partner_id"])
+users_df = pd.read_csv("initial_data_formation/meetings.csv", usecols=["user_id", "partner_id"])
 
 users_df = users_df.rename(columns={
     "user_id": "user_one", 

@@ -25,20 +25,6 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         self.action_types = self.get_action_types()
         self.admins = self.get_admins()
 
-    # @local_session
-    # def get_engine(self, session, university_id: int) -> dict:
-    #     """ create engine for university """
-    #     engine_name, engine_parameters = (
-    #         session.query(University.engine_name, University.engine_parameters)
-    #         .filter(University.id == university_id)
-    #         .first()
-    #     )
-    #     engine = {
-    #         "engine_name": engine_name,
-    #         "engine_parameters": engine_parameters,
-    #     }
-    #     return engine
-
     @local_session
     def get_all_users(self, session) -> List:
         users = session.query(User).all()

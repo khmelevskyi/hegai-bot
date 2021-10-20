@@ -12,11 +12,14 @@ from telegram.ext import MessageHandler
 from telegram.ext import PicklePersistence
 from telegram.ext import Updater
 
+from bot.data import TIME_ZONE
 from bot.conv_handlers import conv_handler
 from bot.conv_handlers import support_handler
 from bot.handlers import error_handler
 from bot.handlers import echo
 from bot.handlers import ask_feedback
+from bot.handlers import parse_notion_update_users
+from bot.handlers import parse_tags_notion_update
 
 # configure_logger()
 load_dotenv()
@@ -54,9 +57,11 @@ def main():
 
         j = updater.job_queue
 
-        # callback_time = timedelta(seconds=30)
-        # j.run_repeating(callback=ask_feedback, interval=callback_time, first=0)
+        callback_time = datetime_time(hour=9, minute=54, tzinfo=TIME_ZONE)
+        j.run_daily(callback=parse_notion_update_users, time=callback_time)
 
+        callback_time = datetime_time(hour=9, minute=58, tzinfo=TIME_ZONE)
+        j.run_daily(callback=parse_tags_notion_update, time=callback_time)
 
         # message handlers
         # ================

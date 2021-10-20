@@ -1,10 +1,8 @@
 import requests
-import pprint
 import pandas as pd
-from bot.db_functions import db_session
+from ...db_functions import db_session
 
 from sqlalchemy import create_engine
-from sqlalchemy.types import Integer, BigInteger, CHAR, VARCHAR
 
 
 DATABASE_ID = "256d91086c1e4c6c94e449f08fc40ce3"
@@ -83,29 +81,10 @@ class NotionSync:
 
         return self.properties_data
 
-nsync = NotionSync()
-
-data = nsync.query_databases()
-properties = nsync.get_properties_titles(data)
-properties_data = nsync.get_properties_data(data, properties)
-
-has_more = data["has_more"]
-while has_more == True:
-    start_cursor = data["next_cursor"]
-    print(start_cursor)
-    data = nsync.query_databases(start_cursor=start_cursor)
-    has_more = data["has_more"]
-    properties = nsync.get_properties_titles(data)
-    properties_data = nsync.get_properties_data(data, properties)
-
 
 def check_existence(notion_id):
-    query = "SELECT EXISTS (SELECT 1 FROM public.user WHERE username = %s);"
+    query = "SELECT EXISTS (SELECT 1 FROM public.tag WHERE notion_id = %s);"
     return list(engine.execute(query,  (notion_id, ) ) )[0][0] == 1
-
-
-users_df = pd.DataFrame.from_dict(properties_data)
-print(users_df)
 
 
 def update_object(obj, new_obj, notion_id):
@@ -114,8 +93,8 @@ def update_object(obj, new_obj, notion_id):
     for dict_key in dict_keys:
         if obj_dict[dict_key] != new_obj[dict_key]:
             query = f"UPDATE public.tag SET {dict_key} = '{new_obj[dict_key]}' WHERE notion_id = '{notion_id}';"
-            # print(query)
-            engine.execute(query, )
+            print(query)
+            # engine.execute(query, )
         else:
             pass
 
@@ -123,23 +102,38 @@ def object_to_sql(new_obj):
     dict_keys = new_obj.keys()
     str_t = str(tuple([dict_key for dict_key in dict_keys])).replace("'", "")
     query = f"INSERT INTO public.tag {str_t} VALUES{tuple([str(new_obj[dict_key]) for dict_key in dict_keys])};"
-    # print(query)
-    engine.execute(query, )
-    
-
-for indx, ii in users_df.iterrows():
-    notion_id = ii["notion_id"]
-    # print(notion_id)
-    is_exists = check_existence(notion_id)
-    # print(is_exists)
-    if is_exists == True:
-        tag = db_session.get_tag_by_notion_id(notion_id)
-        update_object(tag, ii, notion_id)
-    elif is_exists == False:
-        object_to_sql(ii)
+    print(query)
+    # engine.execute(query, )
 
 
 
+def parse_tags_notion_update(*args):
+    nsync = NotionSync()
 
-        
+    data = nsync.query_databases()
+    properties = nsync.get_properties_titles(data)
+    properties_data = nsync.get_properties_data(data, properties)
+
+    has_more = data["has_more"]
+    while has_more == True:
+        start_cursor = data["next_cursor"]
+        print(start_cursor)
+        data = nsync.query_databases(start_cursor=start_cursor)
+        has_more = data["has_more"]
+        properties = nsync.get_properties_titles(data)
+        properties_data = nsync.get_properties_data(data, properties)
+
+    users_df = pd.DataFrame.from_dict(properties_data)
+    print(users_df)
+
+    for indx, ii in users_df.iterrows():
+        notion_id = ii["notion_id"]
+        # print(notion_id)
+        is_exists = check_existence(notion_id)
+        # print(is_exists)
+        if is_exists == True:
+            tag = db_session.get_tag_by_notion_id(notion_id)
+            update_object(tag, ii, notion_id)
+        elif is_exists == False:
+            object_to_sql(ii)     
     
