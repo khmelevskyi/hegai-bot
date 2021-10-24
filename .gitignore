@@ -127,3 +127,23 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+##### CUSTOM #####
+*.sqlite
+*.sql
+
+.vscode/
+.idea/
+secret/
+storage
+private.key
+cert.pem
+
+settings.py*
+
+*.log
+*.log.zip
+
+# Sphinx documentation
+docs/source/_autosummary/*
+
