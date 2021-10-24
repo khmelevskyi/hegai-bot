@@ -1,19 +1,14 @@
 """ find a conversation module """
 import re
 from os import getenv
-from loguru import logger
 from telegram import ReplyKeyboardMarkup
 from telegram import Update
-from telegram.chat import Chat
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler
-from telegram.utils import helpers
-from datetime import timedelta
 
 from ..handlers import start
 
 from ...data import text
-from ...data import start_keyboard
 from ...db_functions import db_session
 from ...states import States
 
@@ -115,7 +110,7 @@ def create_conv_request(update: Update, context: CallbackContext):
 
     context.bot.send_message(
         chat_id=chat_id,
-        text="Thanks, we will let you know when we find somebody!",
+        text="Спасибо! Ищем для Вас собеседника...",
     )
 
     conv_request = db_session.create_conv_request(chat_id)

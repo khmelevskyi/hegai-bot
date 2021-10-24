@@ -63,12 +63,14 @@ def main():
         callback_time = datetime_time(hour=9, minute=58, tzinfo=TIME_ZONE)
         j.run_daily(callback=parse_tags_notion_update, time=callback_time)
 
+        callback_time = datetime_time(hour=9, minute=5, tzinfo=TIME_ZONE)
+        j.run_daily(callback=ask_feedback, time=callback_time)
+
         # message handlers
         # ================
 
         dispatcher.add_handler(conv_handler)
         dispatcher.add_handler(support_handler)
-        # dispatcher.add_handler(CommandHandler("info", info))
 
     dispatcher.add_error_handler(error_handler)
 

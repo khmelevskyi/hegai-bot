@@ -47,6 +47,7 @@ postgres_engine = create_engine(
     pool_recycle=300,
     pool_pre_ping=True,
     pool_use_lifo=True,
+    # echo=True
 )
 
 pg_session = sessionmaker(bind=postgres_engine)

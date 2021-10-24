@@ -1,17 +1,12 @@
 """ ask for feedback module """
 
-from loguru import logger
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram import Update
-from telegram.chat import Chat
 from telegram.ext import CallbackContext
-from telegram.ext import ConversationHandler
-from telegram.utils import helpers
 
 from ..handlers import start
 
 from ...data import text
-from ...data import start_keyboard
 from ...db_functions import db_session
 from ...states import States
 
@@ -19,34 +14,40 @@ from ...states import States
 def ask_feedback(*args):
     """ asks for user's feedback 3 days after a conversation """
 
-    if len(args) == 1:  # depends if it called by job_queue or updater
-        context = args[0]
-        chat_id = context.user_data["feedback_chat_id"]
-    else:
-        update, context = args[0], args[1]
-        chat_id = update.message.chat.id
+    context = args[0]
 
-    reply_keyboard = [
-        [text["yes"]],
-        [text["no"]]
-    ]
-    markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
+    conv_requests = db_session.get_conv_requests_more_3_days_active()
+    print(conv_requests)
 
-    context.bot.send_message(
-        chat_id=chat_id,
-        text="Time for feedback!\nHave you had the conversation?",
-        reply_markup=markup
-    )
+    inline_limonad_button = [InlineKeyboardButton(text["yes"], callback_data='feedback_yes')]
+    inline_compot_buttons = [InlineKeyboardButton(text["no"], callback_data='feedback_no')]
 
-    return States.ASK_FEEDBACK
+    markup = InlineKeyboardMarkup([inline_limonad_button, inline_compot_buttons], resize_keyboard=True, one_time_keyboard=True)
+
+    for conv_request in conv_requests:
+        user_id = conv_request.user_id
+        user_found_id = conv_request.user_found
+
+        user_one = db_session.get_user_data_by_id(user_id)
+        user_found = db_session.get_user_data_by_id(user_found_id)
+
+        context.bot.send_message(
+            chat_id=user_one.chat_id,
+            text=f"Пришло время фидбека!\nПроизошел ли Ваш разговор с @{user_found.username}?",
+            reply_markup=markup
+        )
+
+    # return States.ASK_FEEDBACK
 
 def ask_feedback_result(update: Update, context: CallbackContext):
     """ asks for an estimation of a conversation or its absence explanation """
 
-    chat_id = update.message.chat.id
-    mssg = update.message.text
+    chat_id = update.effective_chat.id
+    mssg = update.callback_query.data
+    update.callback_query.answer()
+    print(mssg)
 
-    if mssg == text["yes"]:
+    if mssg == "feedback_yes":
 
         reply_keyboard = [
             ["1", "2"],
@@ -57,13 +58,13 @@ def ask_feedback_result(update: Update, context: CallbackContext):
 
         context.bot.send_message(
             chat_id=chat_id,
-            text="Nice! Estimate the conversation from 1 to 5:",
+            text="Отлично! Оцените беседу от 1 до 5:",
             reply_markup=markup
         )
     else:
         context.bot.send_message(
             chat_id=chat_id,
-            text="Bad, write why the conversation hasn't happened:",
+            text="Очень жаль(\nНапишите почему беседа не состоялась:",
             reply_markup=ReplyKeyboardRemove()
         )
     
@@ -78,14 +79,18 @@ def save_feedback(update: Update, context: CallbackContext):
     if mssg in ["1", "2", "3", "4", "5"]:
         """ conv has been """
         print("conv ha been")
-        pass
+        conv_request = db_session.get_conv_request_more_3_days_active_by_chat_id(chat_id)
+        db_session.make_conv_request_inactive(conv_request.id)
+        db_session.create_success_feedback(conv_request.id, int(mssg))
     else:
         """ conv has not been"""
         print("conv has not been")
-        pass
+        conv_request = db_session.get_conv_request_more_3_days_active_by_chat_id(chat_id)
+        db_session.make_conv_request_inactive(conv_request.id)
+        db_session.create_not_success_feedback(conv_request.id, mssg)
     context.bot.send_message(
         chat_id=chat_id,
-        text="Thanks kindly for your feedback!",
+        text="Спасибо за Ваш ответ!",
         reply_markup=ReplyKeyboardRemove()
     )
     

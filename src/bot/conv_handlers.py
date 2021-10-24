@@ -1,6 +1,7 @@
 """ conversation handlers of main module """
 from telegram.ext import CommandHandler
 from telegram.ext import ConversationHandler
+from telegram.ext import CallbackQueryHandler
 from telegram.ext import Filters
 from telegram.ext import MessageHandler
 
@@ -28,7 +29,6 @@ from .handlers import create_region_save
 from .handlers import ask_conv_filters
 from .handlers import add_user_tag
 from .handlers import find_conversation
-# from .handlers import ask_feedback
 from .handlers import ask_feedback_result
 from .handlers import save_feedback
 from .handlers import my_contacts
@@ -50,7 +50,8 @@ admin_handler = CommandHandler(
 necessary_handlers = [
     CommandHandler("start", start, pass_job_queue=True),
     admin_handler,
-    CommandHandler("new_region", create_region)
+    CommandHandler("new_region", create_region),
+    CallbackQueryHandler(ask_feedback_result, pass_chat_data=True, pass_user_data=True, pass_update_queue=True, pattern='^feedback')
 ]
 
 support_handler = ConversationHandler(
@@ -120,13 +121,9 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text([text["cancel"]]), start),
             MessageHandler(Filters.text, find_conversation, pass_job_queue=True)
         ],
-        States.ASK_FEEDBACK: [
-            *necessary_handlers,
-            MessageHandler(Filters.text([text["yes"], text["no"]]), ask_feedback_result)
-        ],
         States.SAVE_FEEDBACK: [
             *necessary_handlers,
-            MessageHandler(Filters.text(["1", "2", "3", "4", "5"]), save_feedback)
+            MessageHandler(Filters.text, save_feedback)
         ],
         # -----------------------------------------------------------
         # Registration

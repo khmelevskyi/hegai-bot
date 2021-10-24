@@ -1,4 +1,5 @@
 """ busines logic database access """
+from datetime import timedelta
 from typing import Dict
 from typing import List
 from typing import Tuple
@@ -14,6 +15,7 @@ from ..hegai_db import Contacts
 from ..hegai_db import ConversationRequest
 from ..hegai_db import Tag
 from ..hegai_db import UserTag
+from ..hegai_db import Feedback
 from ..hegai_db import local_time
 from ._utils import local_session
 
@@ -185,7 +187,8 @@ class DBSession(_admin.Mixin, _registration.Mixin):
             session.query(ConversationRequest)
             .filter(
                 ConversationRequest.user_id==user_id,
-                ConversationRequest.active==True
+                ConversationRequest.active==True,
+                ConversationRequest.user_found==None
                 ).first()
         )
         return conv_request
@@ -216,15 +219,69 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         conv_request = session.query(ConversationRequest).get(conv_request_id)
         if user_tags == None:
             conv_request.user_found = user_found.id
-            conv_request.active = False
+            # conv_request.active = False
             conv_request.time_processed = local_time()
         else:
             conv_request.user_found = user_found.id
             conv_request.tags = user_tags
-            conv_request.active = False
+            # conv_request.active = False
             conv_request.time_processed = local_time()
         session.commit()
 
+    @local_session
+    def make_conv_request_inactive(self, session, conv_request_id) -> None:
+        """ update conv request to inactive """
+        conv_request = session.query(ConversationRequest).get(conv_request_id)
+        conv_request.active=False
+        session.commit()
+
+    @local_session
+    def get_conv_requests_more_3_days_active(self, session) -> List[ConversationRequest]:
+        """ returns all the conversation requests that are active and time.now() - time_created() => 3 days """
+        conv_requests = (
+            session.query(ConversationRequest)
+            .filter(
+                ConversationRequest.active==True,
+                ConversationRequest.time_posted<=local_time()-timedelta(days=3)
+            )
+        )
+        return conv_requests.all()
+
+    @local_session
+    def get_conv_request_more_3_days_active_by_chat_id(self, session, chat_id):
+        """ returns all the conversation requests that are active and time.now() - time_created() => 3 days """
+        user = self.get_user_data(chat_id)
+        conv_request = (
+            session.query(ConversationRequest)
+            .filter(
+                ConversationRequest.user_id==user.id,
+                ConversationRequest.active==True,
+                ConversationRequest.time_posted<=local_time()-timedelta(days=3)
+            )
+        )
+        return conv_request.first()
+
+    @local_session
+    def create_success_feedback(self, session, request_id: int, rate: int) -> None:
+        """ saves successful conversation feedback to db """
+        feedback = Feedback(
+            request_id=request_id,
+            conversation_occured=True,
+            rate=rate
+        )
+        session.add(feedback)
+        session.commit()
+
+    @local_session
+    def create_not_success_feedback(self, session, request_id: int, comment: str) -> None:
+        """ saves successful conversation feedback to db """
+        feedback = Feedback(
+            request_id=request_id,
+            conversation_occured=False,
+            comment=comment
+        )
+        session.add(feedback)
+        session.commit()
 
     @local_session
     def get_all_regions(self, session) -> List[Region]:
