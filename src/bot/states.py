@@ -38,4 +38,3 @@ class States(Enum):
     PUSH_MSSG_FINAL = 15
 
     SUPPORT_REPLY = 16
-

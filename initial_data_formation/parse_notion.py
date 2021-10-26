@@ -1,14 +1,14 @@
-import requests
 import pandas as pd
+import requests
 from bot.db_functions import db_session
-
 from sqlalchemy import create_engine
 
 
 DATABASE_ID = "0bfe439187b74e15842803cacc6d38da"
-NOTION_URL = 'https://api.notion.com/v1/databases/'
+NOTION_URL = "https://api.notion.com/v1/databases/"
 
-engine = create_engine('postgresql://postgres:dsfdfe34@localhost:5432/hegai-bot')
+engine = create_engine("postgresql://postgres:dsfdfe34@localhost:5432/hegai-bot")
+
 
 class ApiError(Exception):
     """An API Error Exception"""
@@ -28,32 +28,45 @@ class NotionSync:
         self.properties_data["username"] = []
         self.properties_data["full_name"] = []
 
-
-    def query_databases(self,integration_token="secret_hg3m6SfMBIP8RXAlbSbb0C3MzBYcp5FGNzl1l59R1Dl", start_cursor=None):
+    def query_databases(
+        self,
+        integration_token="secret_hg3m6SfMBIP8RXAlbSbb0C3MzBYcp5FGNzl1l59R1Dl",
+        start_cursor=None,
+    ):
         database_url = NOTION_URL + DATABASE_ID + "/query"
         if start_cursor == None:
             response = requests.post(
                 database_url,
-                headers={"Authorization": f"Bearer {integration_token}", "Notion-Version": "2021-08-16"})
+                headers={
+                    "Authorization": f"Bearer {integration_token}",
+                    "Notion-Version": "2021-08-16",
+                },
+            )
         else:
             response = requests.post(
                 database_url,
-                headers={"Authorization": f"Bearer {integration_token}", "Notion-Version": "2021-08-16", "Content-Type": "application/json"},
-                json={"start_cursor": start_cursor})
+                headers={
+                    "Authorization": f"Bearer {integration_token}",
+                    "Notion-Version": "2021-08-16",
+                    "Content-Type": "application/json",
+                },
+                json={"start_cursor": start_cursor},
+            )
 
         if response.status_code != 200:
-            raise ApiError(f'Response Status: {response.status_code}')
+            raise ApiError(f"Response Status: {response.status_code}")
         else:
             return response.json()
-    
-    def get_properties_titles(self,data_json):
-        return list(data_json["results"][0]["properties"].keys())
-    
 
-    def get_properties_data(self,data_json, properties):
+    def get_properties_titles(self, data_json):
+        return list(data_json["results"][0]["properties"].keys())
+
+    def get_properties_data(self, data_json, properties):
         for ii in range(1, len(data_json["results"])):
             try:
-                name = data_json["results"][ii]["properties"]["Name"]["title"][0]["text"]["content"]
+                name = data_json["results"][ii]["properties"]["Name"]["title"][0][
+                    "text"
+                ]["content"]
             except IndexError:
                 continue
 
@@ -61,8 +74,8 @@ class NotionSync:
             self.properties_data["notion_id"].append(notion_id)
 
             for p in properties:
-                if p=="Telegram":
-                    
+                if p == "Telegram":
+
                     url = data_json["results"][ii]["properties"][p]["url"]
                     if url == None:
                         url = None
@@ -76,14 +89,17 @@ class NotionSync:
                         url = url.replace("@", "")
                     self.properties_data["username"].append(url)
 
-                elif p=="Name":
-                    
-                    name = data_json["results"][ii]["properties"][p]["title"][0]["text"]["content"]
+                elif p == "Name":
+
+                    name = data_json["results"][ii]["properties"][p]["title"][0][
+                        "text"
+                    ]["content"]
                     print(name)
 
                     self.properties_data["full_name"].append(name)
 
         return self.properties_data
+
 
 nsync = NotionSync()
 
@@ -103,7 +119,12 @@ while has_more == True:
 
 def check_existence(username):
     query = f"SELECT EXISTS (SELECT 1 FROM public.user WHERE username = '{username}');"
-    return list(engine.execute(query, ) )[0][0] == 1
+    return (
+        list(engine.execute(query,))[
+            0
+        ][0]
+        == 1
+    )
 
 
 users_df = pd.DataFrame.from_dict(properties_data)
@@ -117,17 +138,22 @@ def update_object(obj, new_obj, username):
         if obj_dict[dict_key] != new_obj[dict_key]:
             query = f"UPDATE public.user SET {dict_key} = '{new_obj[dict_key]}' WHERE username = '{username}';"
             # print(query)
-            engine.execute(query, )
+            engine.execute(
+                query,
+            )
         else:
             pass
+
 
 def object_to_sql(new_obj):
     dict_keys = new_obj.keys()
     str_t = str(tuple([dict_key for dict_key in dict_keys])).replace("'", "")
     query = f"INSERT INTO public.user {str_t} VALUES{tuple([str(new_obj[dict_key]) for dict_key in dict_keys])};"
     # print(query)
-    engine.execute(query, )
-    
+    engine.execute(
+        query,
+    )
+
 
 for indx, ii in users_df.iterrows():
     username = ii["username"]
@@ -139,9 +165,3 @@ for indx, ii in users_df.iterrows():
         update_object(user, ii, username)
     elif is_exists == False:
         object_to_sql(ii)
-
-
-
-
-        
-    

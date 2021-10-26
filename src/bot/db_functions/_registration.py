@@ -17,7 +17,7 @@ class Mixin:
         username = chat.username
         first_name = chat.first_name
 
-        user = session.query(User).filter(User.chat_id==chat_id).first()
+        user = session.query(User).filter(User.chat_id == chat_id).first()
         if user:
             if user.username != username:
                 user.username = username
@@ -45,18 +45,20 @@ class Mixin:
         """
         Create user record if not exist, otherwise update username
         """
-        user = session.query(User).filter(User.chat_id==chat_id).first()
+        user = session.query(User).filter(User.chat_id == chat_id).first()
         if user.notion_id:
             return True
         return False
 
     @local_session
-    def add_user_data(self, session, chat: Chat, notion_id: str, username: str, conversation_open):
+    def add_user_data(
+        self, session, chat: Chat, notion_id: str, username: str, conversation_open
+    ):
         """ save user settings for api request """
-        
+
         chat_id = chat.id
 
-        user = session.query(User).filter(User.chat_id==chat_id).first()
+        user = session.query(User).filter(User.chat_id == chat_id).first()
         if not user:
             user = self.add_user(chat)
         user.notion_id = notion_id

@@ -11,15 +11,13 @@ from telegram import Update
 from telegram.chat import Chat
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler
-from telegram.utils import helpers
 
-from .account import check_username
-from .account import users
-
-from ..data import text
 from ..data import start_keyboard
+from ..data import text
 from ..db_functions import db_session
 from ..states import States
+from .account import check_username
+from .account import users
 
 
 def start_markup() -> ReplyKeyboardMarkup:
@@ -66,15 +64,14 @@ def stop(update: Update, context: CallbackContext):
     db_session.ban_user(chat_id)
     return ConversationHandler.END
 
+
 def connect_to_admin(update: Update, context: CallbackContext):
     """ sends user a link to admin """
 
     chat_id = update.message.chat.id
     context.bot.send_message(
         chat_id=chat_id,
-        text=(
-            "Напишите нам сюда ➡ @support"
-        ),
+        text=("Напишите нам сюда ➡ @support"),
     )
 
 

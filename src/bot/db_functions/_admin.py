@@ -1,13 +1,12 @@
 """ db function for admin account """
 from datetime import datetime
 from datetime import timedelta
+from typing import Any
 from typing import Dict
+from typing import List
 from typing import Tuple
 
-import requests
 from sqlalchemy.sql.expression import false
-from telegram import Update
-from telegram.ext import CallbackContext
 
 from ..data import TIME_ZONE
 from ..hegai_db import Admin
@@ -16,29 +15,27 @@ from ..hegai_db import UserAction
 from ._utils import local_session
 
 
-
 class Mixin:
     """ admin """
 
-    admins: Dict[int, Tuple[str, dict]]
+    admins: List[Any]
 
     @local_session
     def get_admins(self, session) -> Dict[int, Tuple[str, dict]]:
         """ list of admin ids """
 
-        admins = [ i[0] for i in session.query(Admin.id).all() ]
+        admins = [i[0] for i in session.query(Admin.id).all()]
         return admins
-
 
     @local_session
     def set_user(self, session, admin_id: int, chat_id: int) -> Tuple[bool, str]:
         """ drop user from all tables """
 
-        user = session.query(User).filter(User.chat_id==chat_id).first()
+        user = session.query(User).filter(User.chat_id == chat_id).first()
         if not user:
             return (True, f"User with id: {chat_id} not exist")
 
-        admin = session.query(User).filter(User.chat_id==admin_id).first()
+        admin = session.query(User).filter(User.chat_id == admin_id).first()
 
         try:
             admin.university_id = user.university_id
@@ -56,7 +53,7 @@ class Mixin:
         if chat_id in self.admins.keys():
             return (True, f"User with id: {chat_id} is Admin")
 
-        user = session.query(User).filter(User.chat_id==chat_id).first()
+        user = session.query(User).filter(User.chat_id == chat_id).first()
 
         if not user:
             return (True, f"User with id: {chat_id} not exist")

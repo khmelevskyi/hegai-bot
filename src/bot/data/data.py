@@ -15,7 +15,7 @@ with open(new_path, "r", encoding="utf-8") as fp:
 
 start_keyboard = [
     [text["profile"], text["find_conv"]],
-    [text["my_contacts"], text["connect_admin"]]
+    [text["my_contacts"], text["connect_admin"]],
 ]
 
 URL_BUTTON_REGEX = re.compile(

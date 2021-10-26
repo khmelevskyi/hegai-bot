@@ -5,7 +5,6 @@ from enum import Enum
 from functools import wraps
 from os import getenv
 from typing import Literal
-from typing import Tuple
 from typing import Union
 
 from telegram import ReplyKeyboardMarkup
@@ -14,12 +13,13 @@ from telegram.error import BadRequest
 from telegram.error import Unauthorized
 from telegram.ext import CallbackContext
 
-from ...db_functions import db_session
 from ...data import text
+from ...db_functions import db_session
 from ...states import States
+from .users_dict import users
+
 # from ...utils import cached_data
 # from .account import profile
-from .users_dict import users
 
 
 def clean_users(context):
@@ -109,12 +109,8 @@ def save_user(update: Update, context: CallbackContext):
     # print(users)
     chat_id = update.message.chat.id
 
-    db_session.add_user_data(
-        chat=update.message.chat
-    )
+    db_session.add_user_data(chat=update.message.chat)
 
     del users[chat_id]
 
     # return profile(update, context)
-
-

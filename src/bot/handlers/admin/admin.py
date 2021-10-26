@@ -1,14 +1,15 @@
 """ basic single functions and admin menu """
 from telegram import ParseMode
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import ReplyKeyboardMarkup
 from telegram import Update
 from telegram.ext import CallbackContext
 
-from ...hegai_db import Permission
-from ...db_functions import db_session
 from ...admins import ADMINS
 from ...data import text
+from ...db_functions import db_session
 from ...states import States
+
+# from ...hegai_db import Permission
 
 
 def admin_keyboard_markup() -> ReplyKeyboardMarkup:
@@ -26,15 +27,15 @@ def admin_keyboard_markup() -> ReplyKeyboardMarkup:
 def admin(update: Update, context: CallbackContext):
     """ welcomes admin """
     chat_id = update.message.chat.id
-    # university_id = db_session.get_user_data(chat_id=chat_id)[0]
-    university = "uni" # cached_data.list_universities()[university_id][0]
+
     context.bot.send_message(
         chat_id=chat_id,
-        text=text["hi_admin"], # ADMINS[chat_id][0]
+        text=text["hi_admin"],  # ADMINS[chat_id][0]
         reply_markup=admin_keyboard_markup(),
         parse_mode=ParseMode.HTML,
     )
     return States.ADMIN_MENU
+
 
 def push_mssg(update: Update, context: CallbackContext):
     """ asks wether to send a mssg to moscow ppl, all ppl """
@@ -56,6 +57,7 @@ def push_mssg(update: Update, context: CallbackContext):
     )
     return States.PUSH_MSSG_ADD_TEXT
 
+
 def push_mssg_ask_text(update: Update, context: CallbackContext):
     """ asks wether to send a mssg to moscow ppl, all ppl """
 
@@ -76,6 +78,7 @@ def push_mssg_ask_text(update: Update, context: CallbackContext):
     )
     return States.PUSH_MSSG_ADD_IMG
 
+
 def push_mssg_ask_img(update: Update, context: CallbackContext):
     """ asks wether to send a mssg to moscow ppl, all ppl """
 
@@ -83,10 +86,7 @@ def push_mssg_ask_img(update: Update, context: CallbackContext):
     mssg = update.message.text
     context.user_data["push_text"] = mssg
 
-    reply_keyboard = [
-        [text["skip"]],
-        [text["cancel"]]
-    ]
+    reply_keyboard = [[text["skip"]], [text["cancel"]]]
     markup = ReplyKeyboardMarkup(keyboard=reply_keyboard, resize_keyboard=True)
 
     context.bot.send_message(
@@ -96,6 +96,7 @@ def push_mssg_ask_img(update: Update, context: CallbackContext):
         parse_mode=ParseMode.HTML,
     )
     return States.PUSH_MSSG_FINAL
+
 
 def push_mssg_final(update: Update, context: CallbackContext):
     """ pass """
@@ -119,16 +120,14 @@ def push_mssg_final(update: Update, context: CallbackContext):
 
         if img == []:
             context.bot.send_message(
-                chat_id=chat_id,
-                text=push_text,
-                parse_mode=ParseMode.HTML
+                chat_id=chat_id, text=push_text, parse_mode=ParseMode.HTML
             )
         else:
             context.bot.send_photo(
                 chat_id=chat_id,
                 photo=img[0],
                 caption=push_text,
-                parse_mode=ParseMode.HTML
+                parse_mode=ParseMode.HTML,
             )
 
     return admin(update, context)
@@ -210,5 +209,3 @@ def everyday_news(*args):
 
         for admin_id in admin_ids:
             context.bot.send_message(chat_id=admin_id, text=news_msg)
-
-

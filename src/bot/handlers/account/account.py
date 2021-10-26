@@ -1,15 +1,17 @@
 """ basic info abount user and registrarion process for student and teacher """
 from telegram import ParseMode
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardRemove
 from telegram import Update
 from telegram.ext import CallbackContext
 
-# from ...db_functions import Action
-from ...db_functions import db_session
-from ...data import text
 from ...data import start_keyboard
+from ...data import text
+from ...db_functions import db_session
 from ...states import States
 from .utils import users
+
+# from ...db_functions import Action
 
 
 def profile(update: Update, context: CallbackContext):
@@ -31,11 +33,11 @@ def profile(update: Update, context: CallbackContext):
         return States.MENU
 
     conv_open = user.conversation_open
-    if conv_open == True:
+    if conv_open is True:
         conv_open = "Открыт к разговору"
     else:
         conv_open = "Не открыт к разговору"
-    
+
     if user.region != None:
         region_name = db_session.get_region(user.region).name
     else:
@@ -46,7 +48,11 @@ def profile(update: Update, context: CallbackContext):
     for user_tag in user_tags:
         tag_name = db_session.get_tag(user_tag.tag_id).name
         user_tags_names.append(tag_name)
-    user_tags_names = str(user_tags_names).replace("'", "").replace("[", "").replace("]", "")
+
+    user_tags_names_str = str(user_tags_names)
+    user_tags_names = (
+        user_tags_names_str.replace("'", "").replace("[", "").replace("]", "")
+    )
 
     div = 30
     info = (
@@ -79,6 +85,7 @@ def profile(update: Update, context: CallbackContext):
     )
     return States.ACCOUNT
 
+
 ### change name
 def change_name(update: Update, context: CallbackContext):
     """ edits user's name """
@@ -91,9 +98,7 @@ def change_name(update: Update, context: CallbackContext):
     markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
 
     context.bot.send_message(
-        chat_id=chat_id,
-        text="Enter your new name:",
-        reply_markup=markup
+        chat_id=chat_id, text="Enter your new name:", reply_markup=markup
     )
 
     return States.CHANGE_NAME
@@ -106,9 +111,7 @@ def change_name_save(update: Update, context: CallbackContext):
     mssg = update.message.text
 
     context.bot.send_message(
-        chat_id=chat_id,
-        text=text["edit_success"],
-        reply_markup=ReplyKeyboardRemove()
+        chat_id=chat_id, text=text["edit_success"], reply_markup=ReplyKeyboardRemove()
     )
 
     db_session.save_new_name(chat_id, mssg)
@@ -132,9 +135,7 @@ def change_region(update: Update, context: CallbackContext):
     markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
 
     context.bot.send_message(
-        chat_id=chat_id,
-        text="Choose a new region:",
-        reply_markup=markup
+        chat_id=chat_id, text="Choose a new region:", reply_markup=markup
     )
 
     return States.CHANGE_REGION
@@ -152,9 +153,7 @@ def change_region_save(update: Update, context: CallbackContext):
             region_id = region.id
 
     context.bot.send_message(
-        chat_id=chat_id,
-        text=text["edit_success"],
-        reply_markup=ReplyKeyboardRemove()
+        chat_id=chat_id, text=text["edit_success"], reply_markup=ReplyKeyboardRemove()
     )
 
     db_session.save_new_region(chat_id, region_id)
@@ -170,7 +169,7 @@ def change_status(update: Update, context: CallbackContext):
 
     user = db_session.get_user_data(chat_id)
 
-    if user.conversation_open == True:
+    if user.conversation_open is True:
         status_text = "Не открыт к разговору"
     else:
         status_text = "Открыт к разговору"
@@ -197,29 +196,24 @@ def change_status_save(update: Update, context: CallbackContext):
     chat_id = update.message.chat.id
 
     context.bot.send_message(
-        chat_id=chat_id,
-        text=text["edit_success"],
-        reply_markup=ReplyKeyboardRemove()
+        chat_id=chat_id, text=text["edit_success"], reply_markup=ReplyKeyboardRemove()
     )
 
     db_session.save_new_status(chat_id)
 
     return profile(update, context)
 
+
 def create_region(update: Update, context: CallbackContext):
     """ creates a new region """
 
     chat_id = update.message.chat.id
 
-    reply_keyboard = [
-        [text["cancel"]]
-    ]
+    reply_keyboard = [[text["cancel"]]]
     markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
-    
+
     context.bot.send_message(
-        chat_id=chat_id,
-        text="Enter a region name",
-        reply_markup=markup
+        chat_id=chat_id, text="Enter a region name", reply_markup=markup
     )
 
     return States.CREATE_REGION
@@ -232,6 +226,7 @@ def start_markup() -> ReplyKeyboardMarkup:
     )
     return markup
 
+
 def create_region_save(update: Update, context: CallbackContext):
     """ saves a new region """
 
@@ -243,7 +238,7 @@ def create_region_save(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=chat_id,
         text="Region created successfully!",
-        reply_markup=ReplyKeyboardRemove()
+        reply_markup=ReplyKeyboardRemove(),
     )
 
     context.bot.send_message(
