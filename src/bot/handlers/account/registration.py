@@ -59,6 +59,8 @@ def check_notion_username(update: Update, context: CallbackContext):
         if "@" in username:
             username = username.replace("@", "")
 
+    notion_id = db_session.get_user_data_by_username(username).notion_id
+
     if username in all_usernames or username in default_list:
         if username in default_list:
             notion_id = 1
