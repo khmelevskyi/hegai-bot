@@ -2,22 +2,20 @@
 import os
 import sys
 from datetime import time as datetime_time
-from datetime import timedelta
 
 from dotenv import load_dotenv
 from loguru import logger
-from telegram.ext import CommandHandler
 from telegram.ext import Filters
 from telegram.ext import MessageHandler
 from telegram.ext import PicklePersistence
 from telegram.ext import Updater
 
-from bot.data import TIME_ZONE
 from bot.conv_handlers import conv_handler
 from bot.conv_handlers import support_handler
-from bot.handlers import error_handler
-from bot.handlers import echo
+from bot.data import TIME_ZONE
 from bot.handlers import ask_feedback
+from bot.handlers import echo
+from bot.handlers import error_handler
 from bot.handlers import parse_notion_update_users
 from bot.handlers import parse_tags_notion_update
 
@@ -97,4 +95,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -1,13 +1,13 @@
 """ basic info abount user and registrarion process for student and teacher """
 from telegram import ParseMode
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram import Update
 from telegram.ext import CallbackContext
 
-# from ...db_functions import Action
-from ...db_functions import db_session
 from ...data import text
+from ...db_functions import db_session
 from ...states import States
+
+# from ...db_functions import Action
 
 
 def my_contacts(update: Update, context: CallbackContext):
@@ -26,7 +26,7 @@ def my_contacts(update: Update, context: CallbackContext):
         return States.MENU
 
     contacts = db_session.get_contacts(user.id)
-    
+
     contacts_info = ""
     for ii in contacts:
         user = db_session.get_user_data_by_id(ii)
@@ -36,10 +36,7 @@ def my_contacts(update: Update, context: CallbackContext):
     if contacts == []:
         contacts_info = "На данный момент у Вас нет контактов!"
 
-    info = (
-        "<i>Ваши контакты</i>\n\n"
-        + contacts_info
-    )
+    info = "<i>Ваши контакты</i>\n\n" + contacts_info
 
     context.bot.send_message(
         chat_id=chat_id,

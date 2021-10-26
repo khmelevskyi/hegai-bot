@@ -1,8 +1,8 @@
 import logging
 
 from loguru import logger
-
-from settings.base import root_dir, settings
+from settings.base import root_dir
+from settings.base import settings
 
 
 def configure_logger():

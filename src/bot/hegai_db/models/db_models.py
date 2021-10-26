@@ -57,11 +57,17 @@ class Contacts(Base):
     user_one = Column(Integer, ForeignKey("user.id"))
     user_two = Column(Integer, ForeignKey("user.id"))
 
-    user_one_name = relationship("User", backref="contacts_one", foreign_keys=[user_one])
-    user_two_name = relationship("User", backref="contacts_two", foreign_keys=[user_two])
+    user_one_name = relationship(
+        "User", backref="contacts_one", foreign_keys=[user_one]
+    )
+    user_two_name = relationship(
+        "User", backref="contacts_two", foreign_keys=[user_two]
+    )
 
     def __repr__(self):
-        return "<Contacts(id='{}', user_one='{}', user_two='{}')>".format(self.id, self.user_one, self.user_two)
+        return "<Contacts(id='{}', user_one='{}', user_two='{}')>".format(
+            self.id, self.user_one, self.user_two
+        )
 
 
 class UserTag(Base):
@@ -77,7 +83,9 @@ class UserTag(Base):
     tag = relationship("Tag", backref="user_tag", foreign_keys=[tag_id])
 
     def __repr__(self):
-        return "<UserTag(id='{}', user_id='{}', tag_id='{}')>".format(self.id, self.user_id, self.tag_id)
+        return "<UserTag(id='{}', user_id='{}', tag_id='{}')>".format(
+            self.id, self.user_id, self.tag_id
+        )
 
 
 class Tag(Base):
@@ -91,7 +99,9 @@ class Tag(Base):
     status = Column(String)
 
     def __repr__(self):
-        return "<Tag(id='{}', name='{}', notion_id='{}', status='{}')>".format(self.id, self.name, self.notion_id, self.status)
+        return "<Tag(id='{}', name='{}', notion_id='{}', status='{}')>".format(
+            self.id, self.name, self.notion_id, self.status
+        )
 
 
 class ConversationRequest(Base):
@@ -107,8 +117,12 @@ class ConversationRequest(Base):
     time_posted = Column(DateTime)
     time_processed = Column(DateTime)
 
-    user_name = relationship("User", backref="conversation_request_user", foreign_keys=[user_id])
-    user_found_name = relationship("User", backref="conversation_request_user_found", foreign_keys=[user_found])
+    user_name = relationship(
+        "User", backref="conversation_request_user", foreign_keys=[user_id]
+    )
+    user_found_name = relationship(
+        "User", backref="conversation_request_user_found", foreign_keys=[user_found]
+    )
 
     def __repr__(self):
         return "<ConversationRequest(id='{}', user_id='{}', user_found='{}', tags='{}', active='{}')>".format(
@@ -127,7 +141,9 @@ class Feedback(Base):
     rate = Column(Integer)
     comment = Column(String)
 
-    request = relationship("ConversationRequest", backref="feedback", foreign_keys=[request_id])
+    request = relationship(
+        "ConversationRequest", backref="feedback", foreign_keys=[request_id]
+    )
 
     def __repr__(self):
         return "<Feedback(id='{}', request_id='{}', conversation_occured='{}', rate='{}')>".format(

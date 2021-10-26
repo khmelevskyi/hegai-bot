@@ -4,19 +4,18 @@ from typing import Dict
 from typing import List
 from typing import Tuple
 
-
 from . import _admin
 from . import _registration
 from ..hegai_db import Action
-from ..hegai_db import User
-from ..hegai_db import UserAction
-from ..hegai_db import Region
 from ..hegai_db import Contacts
 from ..hegai_db import ConversationRequest
-from ..hegai_db import Tag
-from ..hegai_db import UserTag
 from ..hegai_db import Feedback
 from ..hegai_db import local_time
+from ..hegai_db import Region
+from ..hegai_db import Tag
+from ..hegai_db import User
+from ..hegai_db import UserAction
+from ..hegai_db import UserTag
 from ._utils import local_session
 
 
@@ -29,13 +28,15 @@ class DBSession(_admin.Mixin, _registration.Mixin):
 
     @local_session
     def get_all_users(self, session) -> List:
+        """ returns all users """
         users = session.query(User).all()
         return users
 
     @local_session
     def get_all_users_by_region(self, session, region) -> List:
+        """ returns all users by the specific region """
         region_id = self.get_region_by_name(region).id
-        users = session.query(User).filter(User.region==region_id).all()
+        users = session.query(User).filter(User.region == region_id).all()
         return users
 
     @local_session
@@ -48,21 +49,15 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     @local_session
     def get_open_users(self, session) -> List:
         """ returns all users who are open for conversation """
-        users = (
-            session.query(User)
-            .filter(User.conversation_open==True).all()
-        )
+        users = session.query(User).filter(User.conversation_open == True).all()
         return users
 
     @local_session
     def get_user_data(self, session, chat_id: int) -> User:
         """ returns user by chat_id """
-        user = (
-            session.query(User)
-            .filter(User.chat_id==chat_id).first()
-        )
+        user = session.query(User).filter(User.chat_id == chat_id).first()
         return user
-    
+
     @local_session
     def get_user_data_by_id(self, session, id: int) -> User:
         """ returns user by id """
@@ -72,41 +67,35 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     @local_session
     def get_user_data_by_username(self, session, username: str) -> User:
         """ returns user by username """
-        user = (
-            session.query(User)
-            .filter(User.username==username).first()
-        )
+        user = session.query(User).filter(User.username == username).first()
         return user
 
     @local_session
     def get_user_data_by_notion_id(self, session, notion_id: str) -> User:
         """ returns user by notion_id """
-        user = (
-            session.query(User)
-            .filter(User.notion_id==notion_id).first()
-        )
+        user = session.query(User).filter(User.notion_id == notion_id).first()
         return user
 
     @local_session
     def get_contacts(self, session, id: int) -> List:
         """ returns user's contact's ids """
         contacts = (
-            session.query(Contacts.user_two)
-            .filter(Contacts.user_one==id).all()
+            session.query(Contacts.user_two).filter(Contacts.user_one == id).all()
         )
         return contacts
-    
+
     @local_session
     def add_contacts(self, session, user_one_id: int, user_two_id: int) -> None:
         """ adds a contacts row to db """
-        contacts = session.query(Contacts).filter(Contacts.user_one==user_one_id, Contacts.user_two==user_two_id).first()
+        contacts = (
+            session.query(Contacts)
+            .filter(Contacts.user_one == user_one_id, Contacts.user_two == user_two_id)
+            .first()
+        )
         if contacts:
             pass
         else:
-            new_contacts = Contacts(
-                user_one=user_one_id,
-                user_two=user_two_id
-            )
+            new_contacts = Contacts(user_one=user_one_id, user_two=user_two_id)
             session.add(new_contacts)
             session.commit()
 
@@ -119,56 +108,39 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     @local_session
     def get_tag_by_notion_id(self, session, notion_id: str) -> Tag:
         """ returns tag by notion_id """
-        tag = (
-            session.query(Tag)
-            .filter(Tag.notion_id==notion_id).first()
-        )
+        tag = session.query(Tag).filter(Tag.notion_id == notion_id).first()
         return tag
-    
+
     @local_session
     def get_tag_by_name(self, session, tag_name: str) -> Tag:
         """ returns a tag by name """
-        tag = (
-            session.query(Tag)
-            .filter(Tag.name==tag_name).first()
-        )
+        tag = session.query(Tag).filter(Tag.name == tag_name).first()
         return tag
 
     @local_session
     def get_tag_statuses(self, session) -> List:
         """ returns all tags' statuses """
-        statuses = (
-            session.query(Tag.status).all()
-        )
+        statuses = session.query(Tag.status).all()
         statuses = list(dict.fromkeys(statuses))
         return statuses
 
     @local_session
     def get_tags_by_status(self, session, status: str) -> List:
         """ returns all tags by status """
-        tags = (
-            session.query(Tag)
-            .filter(Tag.status==status).all()
-        )
+        tags = session.query(Tag).filter(Tag.status == status).all()
         return tags
 
     @local_session
     def get_user_tags(self, session, chat_id) -> List:
         """ returns all user tags by chat_id """
         user_id = self.get_user_data(chat_id).id
-        user_tags = (
-            session.query(UserTag)
-            .filter(UserTag.user_id==user_id).all()
-        )
+        user_tags = session.query(UserTag).filter(UserTag.user_id == user_id).all()
         return user_tags
-    
+
     @local_session
     def get_user_tags_by_user_id(self, session, user_id) -> List:
         """ returns all user tags by chat_id """
-        user_tags = (
-            session.query(UserTag)
-            .filter(UserTag.user_id==user_id).all()
-        )
+        user_tags = session.query(UserTag).filter(UserTag.user_id == user_id).all()
         return user_tags
 
     @local_session
@@ -180,16 +152,19 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         session.commit()
 
     @local_session
-    def get_conv_request_active_by_user_id(self, session, chat_id) -> ConversationRequest:
+    def get_conv_request_active_by_user_id(
+        self, session, chat_id
+    ) -> ConversationRequest:
         """ returns active conversation request by user_id """
         user_id = self.get_user_data(chat_id).id
         conv_request = (
             session.query(ConversationRequest)
             .filter(
-                ConversationRequest.user_id==user_id,
-                ConversationRequest.active==True,
-                ConversationRequest.user_found==None
-                ).first()
+                ConversationRequest.user_id == user_id,
+                ConversationRequest.active == True,
+                ConversationRequest.user_found == None,
+            )
+            .first()
         )
         return conv_request
 
@@ -204,16 +179,15 @@ class DBSession(_admin.Mixin, _registration.Mixin):
             user_tags_names.append(tag_name)
 
         conv_request = ConversationRequest(
-            user_id=user.id,
-            tags=user_tags_names,
-            active=True,
-            time_posted=local_time()
+            user_id=user.id, tags=user_tags_names, active=True, time_posted=local_time()
         )
         session.add(conv_request)
         session.commit()
 
     @local_session
-    def update_conv_request(self, session, conv_request, user_found, user_tags=None) -> None:
+    def update_conv_request(
+        self, session, conv_request, user_found, user_tags=None
+    ) -> None:
         """ updates a conv request """
         conv_request_id = conv_request.id
         conv_request = session.query(ConversationRequest).get(conv_request_id)
@@ -232,18 +206,17 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     def make_conv_request_inactive(self, session, conv_request_id) -> None:
         """ update conv request to inactive """
         conv_request = session.query(ConversationRequest).get(conv_request_id)
-        conv_request.active=False
+        conv_request.active = False
         session.commit()
 
     @local_session
-    def get_conv_requests_more_3_days_active(self, session) -> List[ConversationRequest]:
+    def get_conv_requests_more_3_days_active(
+        self, session
+    ) -> List[ConversationRequest]:
         """ returns all the conversation requests that are active and time.now() - time_created() => 3 days """
-        conv_requests = (
-            session.query(ConversationRequest)
-            .filter(
-                ConversationRequest.active==True,
-                ConversationRequest.time_posted<=local_time()-timedelta(days=3)
-            )
+        conv_requests = session.query(ConversationRequest).filter(
+            ConversationRequest.active == True,
+            ConversationRequest.time_posted <= local_time() - timedelta(days=3),
         )
         return conv_requests.all()
 
@@ -251,34 +224,27 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     def get_conv_request_more_3_days_active_by_chat_id(self, session, chat_id):
         """ returns all the conversation requests that are active and time.now() - time_created() => 3 days """
         user = self.get_user_data(chat_id)
-        conv_request = (
-            session.query(ConversationRequest)
-            .filter(
-                ConversationRequest.user_id==user.id,
-                ConversationRequest.active==True,
-                ConversationRequest.time_posted<=local_time()-timedelta(days=3)
-            )
+        conv_request = session.query(ConversationRequest).filter(
+            ConversationRequest.user_id == user.id,
+            ConversationRequest.active == True,
+            ConversationRequest.time_posted <= local_time() - timedelta(days=3),
         )
         return conv_request.first()
 
     @local_session
     def create_success_feedback(self, session, request_id: int, rate: int) -> None:
         """ saves successful conversation feedback to db """
-        feedback = Feedback(
-            request_id=request_id,
-            conversation_occured=True,
-            rate=rate
-        )
+        feedback = Feedback(request_id=request_id, conversation_occured=True, rate=rate)
         session.add(feedback)
         session.commit()
 
     @local_session
-    def create_not_success_feedback(self, session, request_id: int, comment: str) -> None:
+    def create_not_success_feedback(
+        self, session, request_id: int, comment: str
+    ) -> None:
         """ saves successful conversation feedback to db """
         feedback = Feedback(
-            request_id=request_id,
-            conversation_occured=False,
-            comment=comment
+            request_id=request_id, conversation_occured=False, comment=comment
         )
         session.add(feedback)
         session.commit()
@@ -298,7 +264,7 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     @local_session
     def get_region_by_name(self, session, region_name) -> Region:
         """ gets a region object by id """
-        region = session.query(Region).filter(Region.name==region_name).first()
+        region = session.query(Region).filter(Region.name == region_name).first()
         return region
 
     @local_session
@@ -311,21 +277,21 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     @local_session
     def save_new_name(self, session, chat_id, new_name) -> None:
         """ saves user's new name to db """
-        user = session.query(User).filter(User.chat_id==chat_id).first()
+        user = session.query(User).filter(User.chat_id == chat_id).first()
         user.full_name = new_name
         session.commit()
-    
+
     @local_session
     def save_new_region(self, session, chat_id, new_region) -> None:
         """ saves user's new name to db """
-        user = session.query(User).filter(User.chat_id==chat_id).first()
+        user = session.query(User).filter(User.chat_id == chat_id).first()
         user.region = new_region
         session.commit()
-    
+
     @local_session
     def save_new_status(self, session, chat_id) -> None:
         """ saves user's new name to db """
-        user = session.query(User).filter(User.chat_id==chat_id).first()
+        user = session.query(User).filter(User.chat_id == chat_id).first()
         if user.conversation_open == True:
             user.conversation_open = False
         else:
@@ -336,7 +302,7 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     def ban_user(self, session, chat_id: int) -> None:
         """ user banned the bot """
 
-        user = session.query(User).filter(User.chat_id==chat_id).first()
+        user = session.query(User).filter(User.chat_id == chat_id).first()
         if user and user.is_banned is False:
             user.is_banned = True
             session.commit()
@@ -345,7 +311,7 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     def unban_user(self, session, chat_id: int) -> None:
         """ user started conversation after ban """
 
-        user = session.query(User).filter(User.chat_id==chat_id).first()
+        user = session.query(User).filter(User.chat_id == chat_id).first()
         if user.is_banned is True:
             user.is_banned = False
             session.commit()

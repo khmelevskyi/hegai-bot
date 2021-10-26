@@ -1,21 +1,23 @@
 """ regestration start simular both for student and teacher """
-import os
 import json
+import os
 from datetime import datetime
 
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardRemove
 from telegram import Update
 from telegram.ext import CallbackContext
 
-# from ...admins import ADMINS
 from ...data import text
-from ...states import States
 from ...db_functions import db_session
-# from ...utils import cached_data
+from ...states import States
+from .account import profile
 from .users_dict import users
 from .utils import restrict_registration_time
+
+# from ...admins import ADMINS
+# from ...utils import cached_data
 # from .utils import save_user
-from .account import profile
 
 
 def check_username(update: Update, context: CallbackContext):
@@ -33,7 +35,9 @@ def check_username(update: Update, context: CallbackContext):
         return check_notion_username(update, context)
     else:
         context.bot.send_message(
-            chat_id=chat_id, text="Seems like u have no username, enter one:", reply_markup=ReplyKeyboardRemove()
+            chat_id=chat_id,
+            text="Кажется у вас нет юзернейма, введите тот, который указан у Вас в Ноушне сообщества:",
+            reply_markup=ReplyKeyboardRemove(),
         )
         return States.ASK_USERNAME
 
@@ -60,25 +64,24 @@ def check_notion_username(update: Update, context: CallbackContext):
             notion_id = 1
         users[chat_id]["username"] = username
         users[chat_id]["notion_id"] = notion_id
-        reply_keyboard = [
-            [text["yes"], text["no"]],
-            [text["back"]]
-        ]
+        reply_keyboard = [[text["yes"], text["no"]], [text["back"]]]
 
         markup = ReplyKeyboardMarkup(
             keyboard=reply_keyboard, resize_keyboard=True, selective=True
         )
 
         context.bot.send_message(
-            chat_id=chat_id, text="Are you open for a conversation?", reply_markup=markup
+            chat_id=chat_id,
+            text="Вы открыты к общению?",
+            reply_markup=markup,
         )
         return States.ASK_CONV_OPEN
     else:
         context.bot.send_message(
-        chat_id=chat_id,
-        text="Sorry, not part of the community. Write to support, if this is a mistake",
-        reply_markup=ReplyKeyboardRemove()
-    )
+            chat_id=chat_id,
+            text="Извините, но Вы не часть сообщества. Напишите в поддержку, если считаете, что произошла ошибка",
+            reply_markup=ReplyKeyboardRemove(),
+        )
 
 
 @restrict_registration_time
@@ -89,10 +92,7 @@ def registration_final(update: Update, context: CallbackContext):
     username = users[chat_id]["username"]
     notion_id = users[chat_id]["notion_id"]
     mssg = update.message.text
-    boolen_val = {
-        text["yes"]: True,
-        text["no"]: False
-    }
+    boolen_val = {text["yes"]: True, text["no"]: False}
 
     users[chat_id]["last_action_time"] = datetime.now()
 
@@ -100,19 +100,18 @@ def registration_final(update: Update, context: CallbackContext):
         chat=update.message.chat,
         notion_id=notion_id,
         username=username,
-        conversation_open=boolen_val[mssg]
+        conversation_open=boolen_val[mssg],
     )
 
     del users[chat_id]
 
     context.bot.send_message(
         chat_id=chat_id,
-        text="You are authorized! The link to bot-partner:",
-        reply_markup=ReplyKeyboardRemove()
+        text="Вы авторизованы! Ссылка на бота-консьерж:",
+        reply_markup=ReplyKeyboardRemove(),
     )
 
     return profile(update, context)
-
 
 
 # @restrict_registration_time

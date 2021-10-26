@@ -1,16 +1,16 @@
 """ find a conversation module """
 import re
 from os import getenv
+
 from telegram import ReplyKeyboardMarkup
 from telegram import Update
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler
 
-from ..handlers import start
-
 from ...data import text
 from ...db_functions import db_session
 from ...states import States
+from ..handlers import start
 
 
 def ask_conv_filters(update: Update, context: CallbackContext):
@@ -26,10 +26,7 @@ def ask_conv_filters(update: Update, context: CallbackContext):
     context.user_data["status_list"] = status_list
     print(status_list)
 
-    reply_keyboard = [
-        [text["skip"]],
-        [text["cancel"]]
-    ]
+    reply_keyboard = [[text["skip"]], [text["cancel"]]]
     try:
         status_idx = context.user_data["status_idx"]
     except KeyError:
@@ -42,12 +39,11 @@ def ask_conv_filters(update: Update, context: CallbackContext):
         status = status_list[status_idx][0]
 
     print(status)
-    context.user_data["status_idx"] = status_idx+1
+    context.user_data["status_idx"] = status_idx + 1
     tag_list = db_session.get_tags_by_status(status)
     for tag in tag_list:
         tag_name = tag.name
         reply_keyboard.append([tag_name])
-
 
     markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
 
@@ -56,10 +52,11 @@ def ask_conv_filters(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=chat_id,
         text=f"Выберите {status}, которые лучше всего вам подходят:",
-        reply_markup=markup
+        reply_markup=markup,
     )
 
     return States.ADD_USER_TAG
+
 
 def add_user_tag(update: Update, context: CallbackContext):
     """ pass """
@@ -74,7 +71,7 @@ def add_user_tag(update: Update, context: CallbackContext):
         tag_id = db_session.get_tag_by_name(mssg).id
     except AttributeError:
         return ask_conv_filters(update, context)
-    
+
     try:
         user_tag_list = context.user_data["user_tag_list"]
         user_tag_list.append(tag_id)
@@ -83,15 +80,15 @@ def add_user_tag(update: Update, context: CallbackContext):
         user_tag_list.append(tag_id)
         context.user_data["user_tag_list"] = user_tag_list
     print(user_tag_list)
-    
-    if status_idx == (len(status_list)- 1):
+
+    if status_idx == (len(status_list) - 1):
         context.user_data.pop("status_list")
         context.user_data.pop("user_tag_list")
         context.user_data.pop("status_idx")
         for user_tag in user_tag_list:
             db_session.add_user_tag(chat_id, user_tag)
         return create_conv_request(update, context)
-    
+
     return ask_conv_filters(update, context)
 
 
@@ -118,7 +115,7 @@ def create_conv_request(update: Update, context: CallbackContext):
 
     result = find_conversation(conv_request, context)
 
-    if result == False:
+    if result is False:
         user_not_found(conv_request, context)
         # return States.SUPPORT_REPLY
 
@@ -128,7 +125,7 @@ def create_conv_request(update: Update, context: CallbackContext):
 
 
 def find_conversation(conv_request, context):
-
+    """ checks through all open users wether they have the same tags """
     user_tags = conv_request.tags
     user_tags_sorted = sorted(user_tags)
     print(user_tags)
@@ -146,12 +143,12 @@ def find_conversation(conv_request, context):
             if user_tags_sorted == user_two_tags_sorted:
                 user_found(conv_request, user, user_tags, context)
                 return True
-    
+
     return False
 
-    
-def user_found(conv_request, user_found, user_tags, context):
 
+def user_found(conv_request, user_found, user_tags, context):
+    """ user found function """
     db_session.update_conv_request(conv_request, user_found, user_tags)
 
     user_one_id = conv_request.user_id
@@ -160,60 +157,66 @@ def user_found(conv_request, user_found, user_tags, context):
     db_session.add_contacts(user_one.id, user_two.id)
     db_session.add_contacts(user_two.id, user_one.id)
     context.bot.send_message(
-            chat_id=user_one.chat_id,
-            text=f"Мы нашли вам партнера! Встречайте @{user_two.username}",
-        )
+        chat_id=user_one.chat_id,
+        text=f"Мы нашли вам партнера! Встречайте @{user_two.username}",
+    )
 
 
 def user_not_found(conv_request, context):
-
+    """user not found function """
     user_one_id = conv_request.user_id
     user_one = db_session.get_user_data_by_id(user_one_id)
     context.bot.send_message(
-            chat_id=user_one.chat_id,
-            text=f"К сожалению, бот не нашел Вам партнера по вашим интересам(\nНо наши администраторы найдут!\nС Вами свяжутся в ближайшем времени",
-        )
+        chat_id=user_one.chat_id,
+        text="К сожалению, бот не нашел Вам партнера по вашим интересам(\nНо наши администраторы найдут!\nС Вами свяжутся в ближайшем времени",
+    )
 
     user_tags = db_session.get_user_tags(user_one.chat_id)
     user_tags_names = []
     for user_tag in user_tags:
         tag_name = db_session.get_tag(user_tag.tag_id).name
         user_tags_names.append(tag_name)
-    user_tags_names = str(user_tags_names).replace("'", "").replace("[", "").replace("]", "")
+    user_tags_names = (
+        str(user_tags_names).replace("'", "").replace("[", "").replace("]", "")
+    )
 
     context.bot.send_message(
         chat_id=getenv("GROUP_ID"),
         text=(
-            f"Не удалось найти партнера для данного пользователя: @{user_one.username}\n"+
-            f"Имя: {user_one.full_name}\nРегион: {user_one.region}\n"+
-            f"Теги: {user_tags_names}"+
-            f"Notion id: {user_one.notion_id}"
-        )
+            f"Не удалось найти партнера для данного пользователя: @{user_one.username}\n"
+            + f"Имя: {user_one.full_name}\nРегион: {user_one.region}\n"
+            + f"Теги: {user_tags_names}"
+            + f"Notion id: {user_one.notion_id}"
+        ),
     )
 
 
 def support_reply(update, context):
-
+    """ parses support reply for conv request and sends initial user found partner """
     mssg = update.message.text
     if "notion.so" not in mssg:
         context.bot.send_message(
             chat_id=update.message.chat.id,
-            text="Извините, но это неправильный формат\nОтправьте ссылку на подходящего человека в виде 'https://www.notion.so/phegai/ссылка_на_человека' реплаем на соотвествующее сообщение"
+            text="Извините, но это неправильный формат\nОтправьте ссылку на подходящего человека в виде 'https://www.notion.so/phegai/ссылка_на_человека' реплаем на соотвествующее сообщение",
         )
         return States.SUPPORT_REPLY
     else:
         user_found_notion_id = mssg.replace("https://www.notion.so/phegai/", "")
         user_found_notion_id = (
-            user_found_notion_id[:8] + "-" + 
-            user_found_notion_id[8:12] + "-" + 
-            user_found_notion_id[12:16] + "-" +
-            user_found_notion_id[16:20] + "-" + 
-            user_found_notion_id[20:32]
+            user_found_notion_id[:8]
+            + "-"
+            + user_found_notion_id[8:12]
+            + "-"
+            + user_found_notion_id[12:16]
+            + "-"
+            + user_found_notion_id[16:20]
+            + "-"
+            + user_found_notion_id[20:32]
         )
 
     mssg_replied = update.message.reply_to_message.text
 
-    username = re.search("@(\w*)", mssg_replied).group(0).replace("@", "")
+    username = re.search(r"@(\w*)", mssg_replied).group(0).replace("@", "")
     user = db_session.get_user_data_by_username(username)
 
     user_found = db_session.get_user_data_by_notion_id(user_found_notion_id)
@@ -225,8 +228,8 @@ def support_reply(update, context):
     db_session.add_contacts(user_found.id, user.id)
 
     context.bot.send_message(
-            chat_id=user.chat_id,
-            text=f"Мы нашли Вам партнера: @{user_found.username}",
-        )
+        chat_id=user.chat_id,
+        text=f"Мы нашли Вам партнера: @{user_found.username}",
+    )
 
     return ConversationHandler.END
