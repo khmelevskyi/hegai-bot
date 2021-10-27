@@ -1,10 +1,22 @@
+import os
+from dotenv import load_dotenv
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.types import VARCHAR
 
+load_dotenv()
+
 region_df = pd.read_csv("initial_data_formation/users.csv", usecols=["city"])
 
-engine = create_engine("postgresql://postgres:dsfdfe34@localhost:5432/hegai-bot")
+db_username = os.getenv("DB_USERNAME")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
+database = os.getenv("DB_DATABASE")
+
+engine = create_engine(
+    f"postgresql://{db_username}:{password}@{host}:{port}/{database}"
+)
 
 region_df = region_df.rename(columns={"city": "name"})
 

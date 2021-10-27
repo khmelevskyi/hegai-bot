@@ -117,9 +117,6 @@ def create_conv_request(update: Update, context: CallbackContext):
 
     if result is False:
         user_not_found(conv_request, context)
-        # return States.SUPPORT_REPLY
-
-    # context.user_data["feedback_chat_id"] = chat_id
 
     return start(update, context)
 
@@ -128,7 +125,7 @@ def find_conversation(conv_request, context):
     """ checks through all open users wether they have the same tags """
     user_tags = conv_request.tags
     user_tags_sorted = sorted(user_tags)
-    print(user_tags)
+    print(user_tags_sorted)
     potential_users = db_session.get_open_users()
     for user in potential_users:
 
@@ -140,16 +137,23 @@ def find_conversation(conv_request, context):
                 user_two_tags_names.append(tag_name)
             user_two_tags_sorted = sorted(user_two_tags_names)
 
-            if user_tags_sorted == user_two_tags_sorted:
-                user_found(conv_request, user, user_tags, context)
+            common_tags = [tt for tt in user_tags_sorted if tt in user_two_tags_sorted]
+
+            if len(common_tags) >= 2:
+                user_found(conv_request, user, common_tags, context)
                 return True
 
     return False
 
 
-def user_found(conv_request, user_found, user_tags, context):
+def user_found(conv_request, user_found, common_tags, context):
     """ user found function """
-    db_session.update_conv_request(conv_request, user_found, user_tags)
+    db_session.update_conv_request(conv_request, user_found, common_tags)
+
+    common_tags_str = str(common_tags)
+    common_tags_final = (
+        common_tags_str.replace("'", "").replace("[", "").replace("]", "")
+    )
 
     user_one_id = conv_request.user_id
     user_one = db_session.get_user_data_by_id(user_one_id)
@@ -158,7 +162,7 @@ def user_found(conv_request, user_found, user_tags, context):
     db_session.add_contacts(user_two.id, user_one.id)
     context.bot.send_message(
         chat_id=user_one.chat_id,
-        text=f"Мы нашли вам партнера! Встречайте @{user_two.username}",
+        text=f"Мы нашли вам партнера! Встречайте @{user_two.username}\n\nВаши общие интересы: {common_tags_final}",
     )
 
 

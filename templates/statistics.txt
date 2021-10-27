@@ -1,0 +1,16 @@
+За день | неделю | месяц:
+
+<b>Новых  пользователей</b>
+• {{ statistics["new_users"][0] }} | {{ statistics["new_users"][1] }} | {{ statistics["new_users"][2] }}
+
+<b>Новых действий</b>
+• {{ statistics["actions"][0] }} | {{ statistics["actions"][1] }} | {{ statistics["actions"][2] }}
+
+<b>Активных  пользователей</b>
+• {{ statistics["active_users"][0] }} | {{ statistics["active_users"][1] }} | {{ statistics["active_users"][2] }}
+
+---------------------------------------------
+Всего {{ statistics["total_users"][0] }} пользователей
+---------------------------------------------
+БАН
+• {{ statistics["banned"][0] }} из {{ statistics["banned"][1] }} живых

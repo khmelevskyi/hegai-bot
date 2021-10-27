@@ -107,18 +107,18 @@ class Mixin:
         )
 
         day_users = (
-            day_actions.distinct(UserAction.chat_id)
-            .group_by(UserAction.id, UserAction.chat_id)
+            day_actions.distinct(UserAction.user_id)
+            .group_by(UserAction.id, UserAction.user_id)
             .count()
         )
         week_users = (
-            week_actions.distinct(UserAction.chat_id)
-            .group_by(UserAction.id, UserAction.chat_id)
+            week_actions.distinct(UserAction.user_id)
+            .group_by(UserAction.id, UserAction.user_id)
             .count()
         )
         month_users = (
-            month_actions.distinct(UserAction.chat_id)
-            .group_by(UserAction.id, UserAction.chat_id)
+            month_actions.distinct(UserAction.user_id)
+            .group_by(UserAction.id, UserAction.user_id)
             .count()
         )
 
@@ -134,6 +134,7 @@ class Mixin:
                 week_actions.count(),
                 month_actions.count(),
             ],
+            "total_users": [total_users],
             "active_users": [day_users, week_users, month_users],
             "banned": [not_banned, total_users],
         }

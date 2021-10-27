@@ -8,6 +8,7 @@ from ...admins import ADMINS
 from ...data import text
 from ...db_functions import db_session
 from ...states import States
+from ...utils import jinja_env
 
 # from ...hegai_db import Permission
 
@@ -16,7 +17,7 @@ def admin_keyboard_markup() -> ReplyKeyboardMarkup:
     """ returns admin keyboard layout """
 
     admin_keyboard = [
-        [text["push_mssg"]],
+        [text["mailing"]],
         [text["stats"]],
         [text["back"]],
     ]
@@ -43,8 +44,8 @@ def push_mssg(update: Update, context: CallbackContext):
     chat_id = update.message.chat.id
 
     reply_keyboard = [
-        ["Только москвичи"],
-        ["Все"],
+        [text["push_moscow"]],
+        [text["push_all"]],
         [text["cancel"]],
     ]
     markup = ReplyKeyboardMarkup(keyboard=reply_keyboard, resize_keyboard=True)
@@ -209,3 +210,15 @@ def everyday_news(*args):
 
         for admin_id in admin_ids:
             context.bot.send_message(chat_id=admin_id, text=news_msg)
+
+
+def bot_statistics(update: Update, context: CallbackContext):
+    """ collects and sends general data analitics """
+    chat_id = update.message.chat.id
+
+    statistics = db_session.get_statistics()
+    statistics_template = jinja_env.get_template("statistics.txt")
+    statistics_render = statistics_template.render(statistics=statistics)
+    context.bot.send_message(
+        chat_id=chat_id, text=statistics_render, parse_mode=ParseMode.HTML
+    )

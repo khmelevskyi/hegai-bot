@@ -12,6 +12,7 @@ from telegram.ext import Updater
 
 from bot.conv_handlers import conv_handler
 from bot.conv_handlers import support_handler
+from bot.conv_handlers import push_status_handler
 from bot.data import TIME_ZONE
 from bot.handlers import ask_feedback
 from bot.handlers import echo
@@ -69,6 +70,7 @@ def main():
 
         dispatcher.add_handler(conv_handler)
         dispatcher.add_handler(support_handler)
+        dispatcher.add_handler(push_status_handler)
 
     dispatcher.add_error_handler(error_handler)
 

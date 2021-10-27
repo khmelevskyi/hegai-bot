@@ -132,6 +132,8 @@ dmypy.json
 *.sqlite
 *.sql
 
+.env.prod
+
 .vscode/
 .idea/
 secret/

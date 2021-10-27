@@ -7,6 +7,7 @@ from telegram.ext import MessageHandler
 
 from .admins import ADMINS
 from .data import text
+from .data import URL_BUTTON_REGEX
 from .db_functions import db_session
 from .handlers import add_user_tag
 from .handlers import admin
@@ -27,14 +28,23 @@ from .handlers import find_conversation
 from .handlers import my_contacts
 from .handlers import profile
 from .handlers import push_mssg
-from .handlers import push_mssg_ask_img
-from .handlers import push_mssg_ask_text
-from .handlers import push_mssg_final
+
+# from .handlers import push_mssg_ask_img
+# from .handlers import push_mssg_ask_text
+# from .handlers import push_mssg_final
 from .handlers import registration_final
 from .handlers import save_feedback
 from .handlers import start
 from .handlers import stop
 from .handlers import support_reply
+from .handlers import ask_push_text
+from .handlers import display_push
+from .handlers import ask_url_button
+from .handlers import set_url_button
+from .handlers import delete_url_button
+from .handlers import prepare_broadcast
+from .handlers import broadcast_status
+from .handlers import bot_statistics
 from .states import States
 
 
@@ -47,6 +57,13 @@ admin_handler = CommandHandler(
     admin,
     filters=admin_filters,
 )
+
+
+push_status_handler = CommandHandler(
+    "push_status", broadcast_status, filters=admin_filters
+)
+
+
 necessary_handlers = [
     CommandHandler("start", start, pass_job_queue=True),
     admin_handler,
@@ -150,23 +167,35 @@ conv_handler = ConversationHandler(
         States.ADMIN_MENU: [
             *necessary_handlers,
             MessageHandler(Filters.text([text["back"]]), start),
-            MessageHandler(Filters.text([text["push_mssg"]]), push_mssg),
+            MessageHandler(Filters.text([text["stats"]]), bot_statistics),
+            MessageHandler(Filters.text([text["mailing"]]), push_mssg),
+            # MessageHandler(Filters.text([text["push_mssg"]]), push_mssg),
         ],
         States.PUSH_MSSG_ADD_TEXT: [
             *necessary_handlers,
             MessageHandler(Filters.text([text["cancel"]]), admin),
-            MessageHandler(Filters.text, push_mssg_ask_text),
+            MessageHandler(Filters.text, ask_push_text),
         ],
-        States.PUSH_MSSG_ADD_IMG: [
-            *necessary_handlers,
-            MessageHandler(Filters.text([text["cancel"]]), admin),
-            MessageHandler(Filters.text, push_mssg_ask_img),
-        ],
-        States.PUSH_MSSG_FINAL: [
-            *necessary_handlers,
-            MessageHandler(Filters.text([text["cancel"]]), admin),
-            MessageHandler(Filters.text, push_mssg_final),
-            MessageHandler(Filters.photo, push_mssg_final),
+        # States.PUSH_MSSG_ADD_IMG: [
+        #     *necessary_handlers,
+        #     MessageHandler(Filters.text([text["cancel"]]), admin),
+        #     MessageHandler(Filters.text, push_mssg_ask_img),
+        # ],
+        # States.PUSH_MSSG_FINAL: [
+        #     *necessary_handlers,
+        #     MessageHandler(Filters.text([text["cancel"]]), admin),
+        #     MessageHandler(Filters.text, push_mssg_final),
+        #     MessageHandler(Filters.photo, push_mssg_final),
+        # ],
+        States.PUSH: [
+            MessageHandler(Filters.text([text["back"]]), admin),
+            MessageHandler(Filters.text([text["drop_mailing"]]), admin),
+            CallbackQueryHandler(ask_url_button, pattern="add_url_button"),
+            CallbackQueryHandler(delete_url_button, pattern="delete_url_button"),
+            CallbackQueryHandler(display_push, pattern="back_to_push"),
+            MessageHandler(Filters.text([text["start_mailing"]]), prepare_broadcast),
+            MessageHandler(Filters.regex(URL_BUTTON_REGEX), set_url_button),
+            MessageHandler((Filters.text | Filters.photo), display_push),
         ],
     },
     fallbacks=[CommandHandler("stop", stop)],

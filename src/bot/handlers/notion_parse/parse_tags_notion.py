@@ -1,14 +1,25 @@
+import os
+from dotenv import load_dotenv
 import pandas as pd
 import requests
 from sqlalchemy import create_engine
 
 from ...db_functions import db_session
 
+load_dotenv()
 
 DATABASE_ID = "256d91086c1e4c6c94e449f08fc40ce3"
 NOTION_URL = "https://api.notion.com/v1/databases/"
 
-engine = create_engine("postgresql://postgres:dsfdfe34@localhost:5432/hegai-bot")
+db_username = os.getenv("DB_USERNAME")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
+database = os.getenv("DB_DATABASE")
+
+engine = create_engine(
+    f"postgresql://{db_username}:{password}@{host}:{port}/{database}"
+)
 
 
 class ApiError(Exception):
@@ -31,7 +42,7 @@ class NotionSync:
 
     def query_databases(
         self,
-        integration_token="secret_hg3m6SfMBIP8RXAlbSbb0C3MzBYcp5FGNzl1l59R1Dl",
+        integration_token=os.getenv("NOTION_KEY"),
         start_cursor=None,
     ):
         database_url = NOTION_URL + DATABASE_ID + "/query"
@@ -112,8 +123,10 @@ def update_object(obj, new_obj, notion_id):
     for dict_key in dict_keys:
         if obj_dict[dict_key] != new_obj[dict_key]:
             query = f"UPDATE public.tag SET {dict_key} = '{new_obj[dict_key]}' WHERE notion_id = '{notion_id}';"
-            print(query)
-            # engine.execute(query, )
+            # print(query)
+            engine.execute(
+                query,
+            )
         else:
             pass
 
@@ -122,8 +135,10 @@ def object_to_sql(new_obj):
     dict_keys = new_obj.keys()
     str_t = str(tuple([dict_key for dict_key in dict_keys])).replace("'", "")
     query = f"INSERT INTO public.tag {str_t} VALUES{tuple([str(new_obj[dict_key]) for dict_key in dict_keys])};"
-    print(query)
-    # engine.execute(query, )
+    # print(query)
+    engine.execute(
+        query,
+    )
 
 
 def parse_tags_notion_update(*args):

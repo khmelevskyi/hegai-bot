@@ -1,9 +1,13 @@
+import os
+from dotenv import load_dotenv
 import pandas as pd
 from bot.db_functions import db_session
 from sqlalchemy import create_engine
 from sqlalchemy.types import BigInteger
 from sqlalchemy.types import Integer
 from sqlalchemy.types import VARCHAR
+
+load_dotenv()
 
 users_df = pd.read_csv(
     "initial_data_formation/users.csv",
@@ -19,6 +23,7 @@ users_df = users_df.dropna(subset=["chat_id"])
 regions = users_df["region"].tolist()
 regions_dict = {}
 for region in regions:
+    print(region)
     if isinstance(region, float):
         region = None
     try:
@@ -30,8 +35,15 @@ for region in regions:
 users_df["region"].replace(regions_dict, inplace=True)
 print(users_df)
 
+db_username = os.getenv("DB_USERNAME")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
+database = os.getenv("DB_DATABASE")
 
-engine = create_engine("postgresql://postgres:dsfdfe34@localhost:5432/hegai-bot")
+engine = create_engine(
+    f"postgresql://{db_username}:{password}@{host}:{port}/{database}"
+)
 
 
 users_df.to_sql(

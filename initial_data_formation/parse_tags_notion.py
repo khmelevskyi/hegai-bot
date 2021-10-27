@@ -1,15 +1,24 @@
 import os
-
+from dotenv import load_dotenv
 import pandas as pd
 import requests
 from bot.db_functions import db_session
 from sqlalchemy import create_engine
 
+load_dotenv()
 
 DATABASE_ID = "256d91086c1e4c6c94e449f08fc40ce3"
 NOTION_URL = "https://api.notion.com/v1/databases/"
 
-engine = create_engine("postgresql://postgres:dsfdfe34@localhost:5432/hegai-bot")
+db_username = os.getenv("DB_USERNAME")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
+database = os.getenv("DB_DATABASE")
+
+engine = create_engine(
+    f"postgresql://{db_username}:{password}@{host}:{port}/{database}"
+)
 
 
 class ApiError(Exception):

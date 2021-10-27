@@ -1,13 +1,24 @@
+import os
+from dotenv import load_dotenv
 import pandas as pd
 import requests
 from bot.db_functions import db_session
 from sqlalchemy import create_engine
 
+load_dotenv()
 
 DATABASE_ID = "0bfe439187b74e15842803cacc6d38da"
 NOTION_URL = "https://api.notion.com/v1/databases/"
 
-engine = create_engine("postgresql://postgres:dsfdfe34@localhost:5432/hegai-bot")
+db_username = os.getenv("DB_USERNAME")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
+database = os.getenv("DB_DATABASE")
+
+engine = create_engine(
+    f"postgresql://{db_username}:{password}@{host}:{port}/{database}"
+)
 
 
 class ApiError(Exception):
@@ -30,7 +41,7 @@ class NotionSync:
 
     def query_databases(
         self,
-        integration_token="secret_hg3m6SfMBIP8RXAlbSbb0C3MzBYcp5FGNzl1l59R1Dl",
+        integration_token=os.getenv("NOTION_KEY"),
         start_cursor=None,
     ):
         database_url = NOTION_URL + DATABASE_ID + "/query"
@@ -155,6 +166,7 @@ def object_to_sql(new_obj):
     )
 
 
+cnt = 0
 for indx, ii in users_df.iterrows():
     username = ii["username"]
     # print(username)
@@ -165,3 +177,5 @@ for indx, ii in users_df.iterrows():
         update_object(user, ii, username)
     elif is_exists == False:
         object_to_sql(ii)
+    print(cnt)
+    cnt += 1

@@ -33,6 +33,25 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         return users
 
     @local_session
+    def get_all_users_for_broadcast(self, session) -> List[Tuple[int, bool]]:
+        """ returns all users ids and is_banned """
+        users = session.query(User.chat_id, User.is_banned).all()
+        return users
+
+    @local_session
+    def get_all_users_for_broadcast_by_region(
+        self, session, region
+    ) -> List[Tuple[int, bool]]:
+        """ returns all users ids and is_banned by the specific region """
+        region_id = self.get_region_by_name(region).id
+        users = (
+            session.query(User.chat_id, User.is_banned)
+            .filter(User.region == region_id)
+            .all()
+        )
+        return users
+
+    @local_session
     def get_all_users_by_region(self, session, region) -> List:
         """ returns all users by the specific region """
         region_id = self.get_region_by_name(region).id
@@ -314,6 +333,39 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         user = session.query(User).filter(User.chat_id == chat_id).first()
         if user.is_banned is True:
             user.is_banned = False
+            session.commit()
+
+    @local_session
+    def ban_users(self, session, failed_users: Dict[int, dict]) -> None:
+        """ set User.is_banned to true and log banned as Action"""
+
+        if failed_users:
+            ban_id = session.query(Action.id).filter(Action.name == "ban").first()
+            chat_ids = list(failed_users.keys())
+
+            # drop timers of banned users
+            users = session.query(User).filter(User.chat_id.in_(chat_ids)).all()
+            for user in users:
+                is_banned, error = failed_users[user.chat_id]
+                if not is_banned:
+                    user.is_banned = True
+                    # create action in case user banned for the first time
+                    new_action = UserAction(chat_id=user.chat_id, action=ban_id)
+                    # log banned time
+                    session.add(new_action)
+                if user.error != error:
+                    user.error = error  # track newest errors
+            session.commit()
+
+    @local_session
+    def unban_users(self, session, chat_ids: List[int]) -> None:
+        """ set User.is_banned to flase"""
+
+        if chat_ids:
+            users = session.query(User).filter(User.chat_id.in_(chat_ids)).all()
+            for user in users:
+                if user.is_banned:
+                    user.is_banned = False  # change user field
             session.commit()
 
     @local_session

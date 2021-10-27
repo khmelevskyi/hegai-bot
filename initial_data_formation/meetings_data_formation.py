@@ -1,8 +1,20 @@
+import os
+from dotenv import load_dotenv
 import pandas as pd
 from bot.db_functions import db_session
 from sqlalchemy import create_engine
 
-engine = create_engine("postgresql://postgres:dsfdfe34@localhost:5432/hegai-bot")
+load_dotenv()
+
+db_username = os.getenv("DB_USERNAME")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
+database = os.getenv("DB_DATABASE")
+
+engine = create_engine(
+    f"postgresql://{db_username}:{password}@{host}:{port}/{database}"
+)
 
 users_df = pd.read_csv(
     "initial_data_formation/meetings.csv", usecols=["user_id", "partner_id"]
@@ -25,7 +37,7 @@ for indx, ii in users_df.iterrows():
     user_one = ii["user_one"]
     user_two = ii["user_two"]
     is_exists = check_existence(user_one)
-    # print(is_exists)
+    print(is_exists)
     if is_exists == True:
         is_exists = check_existence(user_two)
         if is_exists == True:

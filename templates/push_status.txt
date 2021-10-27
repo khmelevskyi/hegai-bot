@@ -1,0 +1,12 @@
+<b>Push status</b> 🚏
+
+{{ pd.sended_percent }} % ➖ {{ pd.successful_send + pd.error_send }} / {{ pd.total_receivers }} messages sended 📬
+{{ pd.errror_persent }} % ➖ {{ pd.error_send }} errors ⚠️
+
+in {{ pd.time_passed }} ⌛️
+{{ pd.time_left }} left ⏳
+
+{% if pd.db_changes %}
+{{ pd.db_changes.failed_users }} failed users 🚷
+{{ pd.db_changes.fixed_users }} fixed users 💹
+{% endif %}
