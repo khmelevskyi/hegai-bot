@@ -40,3 +40,5 @@ class States(Enum):
     SUPPORT_REPLY = 16
 
     PUSH = 17
+
+    EXISTING_REQUEST = 18

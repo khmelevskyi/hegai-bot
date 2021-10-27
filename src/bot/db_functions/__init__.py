@@ -222,6 +222,13 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         session.commit()
 
     @local_session
+    def remove_active_conv_request(self, session, conv_request_id) -> None:
+        """ removes active conv request """
+        conv_request = session.query(ConversationRequest).get(conv_request_id)
+        session.delete(conv_request)
+        session.commit()
+
+    @local_session
     def make_conv_request_inactive(self, session, conv_request_id) -> None:
         """ update conv request to inactive """
         conv_request = session.query(ConversationRequest).get(conv_request_id)

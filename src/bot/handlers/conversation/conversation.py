@@ -99,15 +99,22 @@ def create_conv_request(update: Update, context: CallbackContext):
 
     conv_request = db_session.get_conv_request_active_by_user_id(chat_id)
     if conv_request:
+
+        reply_keyboard = [[text["ok"]], [text["cancel_request"]]]
+        markup = ReplyKeyboardMarkup(
+            reply_keyboard, resize_keyboard=True, selective=True
+        )
+
         context.bot.send_message(
             chat_id=chat_id,
             text="У Вас уже есть активный запрос на разговор, мы Вас оповестим, когда найдем кого-то!",
+            reply_markup=markup,
         )
-        return start(update, context)
+        return States.EXISTING_REQUEST
 
     context.bot.send_message(
         chat_id=chat_id,
-        text="Спасибо! Ищем для Вас собеседника...",
+        text="Отлично! Ищем для Вас собеседника...",
     )
 
     conv_request = db_session.create_conv_request(chat_id)
@@ -118,6 +125,20 @@ def create_conv_request(update: Update, context: CallbackContext):
     if result is False:
         user_not_found(conv_request, context)
 
+    return start(update, context)
+
+
+def cancel_request(update: Update, context: CallbackContext):
+    """ cancel conv request and deletes from db """
+    chat_id = update.message.chat.id
+
+    conv_request = db_session.get_conv_request_active_by_user_id(chat_id)
+    db_session.remove_active_conv_request(conv_request.id)
+
+    context.bot.send_message(
+        chat_id=chat_id,
+        text="Мы отменили прошлый запрос на общение! Теперь Вы можете еще раз попробывать найти собеседника",
+    )
     return start(update, context)
 
 

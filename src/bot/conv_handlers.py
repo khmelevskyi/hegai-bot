@@ -25,6 +25,7 @@ from .handlers import connect_to_admin
 from .handlers import create_region
 from .handlers import create_region_save
 from .handlers import find_conversation
+from .handlers import cancel_request
 from .handlers import my_contacts
 from .handlers import profile
 from .handlers import push_mssg
@@ -143,6 +144,11 @@ conv_handler = ConversationHandler(
             *necessary_handlers,
             MessageHandler(Filters.text([text["cancel"]]), start),
             MessageHandler(Filters.text, find_conversation, pass_job_queue=True),
+        ],
+        States.EXISTING_REQUEST: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["ok"]]), start),
+            MessageHandler(Filters.text([text["cancel_request"]]), cancel_request),
         ],
         States.SAVE_FEEDBACK: [
             *necessary_handlers,
