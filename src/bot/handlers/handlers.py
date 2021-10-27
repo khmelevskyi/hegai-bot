@@ -28,6 +28,28 @@ def start_markup() -> ReplyKeyboardMarkup:
     return markup
 
 
+def start_init(update: Update, context: CallbackContext):
+    """ start command an msg """
+
+    chat = update.message.chat
+    db_session.add_user(chat=chat)
+
+    chat_id = update.message.chat.id
+
+    if chat_id in users:  # if user returned from registration form
+        users.pop(chat_id, None)
+
+    context.bot.send_message(
+        chat_id=update.message.chat.id,
+        text=text["start_init"],
+        reply_markup=start_markup(),
+    )
+
+    if not db_session.user_is_registered(chat_id=chat_id):
+        return check_username(update, context)
+    return States.MENU
+
+
 def start(update: Update, context: CallbackContext):
     """ start command an msg """
 

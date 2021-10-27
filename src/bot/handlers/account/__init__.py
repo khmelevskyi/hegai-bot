@@ -1,4 +1,6 @@
 """ account and registration flow """
+from .account import change_user_tags
+from .account import change_add_user_tag
 from .account import change_name
 from .account import change_name_save
 from .account import change_region

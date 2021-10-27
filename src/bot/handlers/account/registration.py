@@ -15,7 +15,6 @@ from .account import profile
 from .users_dict import users
 from .utils import restrict_registration_time
 
-# from ...admins import ADMINS
 # from ...utils import cached_data
 # from .utils import save_user
 

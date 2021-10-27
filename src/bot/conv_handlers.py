@@ -5,7 +5,6 @@ from telegram.ext import ConversationHandler
 from telegram.ext import Filters
 from telegram.ext import MessageHandler
 
-from .admins import ADMINS
 from .data import text
 from .data import URL_BUTTON_REGEX
 from .db_functions import db_session
@@ -13,6 +12,8 @@ from .handlers import add_user_tag
 from .handlers import admin
 from .handlers import ask_conv_filters
 from .handlers import ask_feedback_result
+from .handlers import change_user_tags
+from .handlers import change_add_user_tag
 from .handlers import change_name
 from .handlers import change_name_save
 from .handlers import change_region
@@ -35,6 +36,7 @@ from .handlers import push_mssg
 # from .handlers import push_mssg_final
 from .handlers import registration_final
 from .handlers import save_feedback
+from .handlers import start_init
 from .handlers import start
 from .handlers import stop
 from .handlers import support_reply
@@ -49,7 +51,10 @@ from .handlers import bot_statistics
 from .states import States
 
 
-ADMIN_IDS = [db_session.get_user_data_by_id(admin_id).chat_id for admin_id in ADMINS]
+ADMIN_IDS = [
+    db_session.get_user_data_by_id(admin_id).chat_id
+    for admin_id in db_session.get_admins()
+]
 
 admin_filters = Filters.user(ADMIN_IDS) & Filters.chat_type.private
 
@@ -66,7 +71,7 @@ push_status_handler = CommandHandler(
 
 
 necessary_handlers = [
-    CommandHandler("start", start, pass_job_queue=True),
+    CommandHandler("start", start_init, pass_job_queue=True),
     admin_handler,
     CommandHandler("new_region", create_region),
     CallbackQueryHandler(
@@ -114,6 +119,7 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text([text["change_name"]]), change_name),
             MessageHandler(Filters.text([text["change_region"]]), change_region),
             MessageHandler(Filters.text([text["change_status"]]), change_status),
+            MessageHandler(Filters.text([text["change_tags"]]), change_user_tags),
         ],
         States.CHANGE_NAME: [
             *necessary_handlers,
@@ -153,6 +159,11 @@ conv_handler = ConversationHandler(
         States.SAVE_FEEDBACK: [
             *necessary_handlers,
             MessageHandler(Filters.text, save_feedback),
+        ],
+        States.CHANGE_ADD_USER_TAG: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["cancel"]]), start),
+            MessageHandler(Filters.text, change_add_user_tag),
         ],
         # -----------------------------------------------------------
         # Registration

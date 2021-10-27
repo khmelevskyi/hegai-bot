@@ -12,7 +12,6 @@ from telegram.ext import CallbackContext
 
 from ..hegai_db import Permission
 from ..db_functions import db_session
-from ..admins import ADMINS
 from ..data import text
 from ..states import States
 from ..utils import cached
@@ -38,7 +37,7 @@ def restricted(permission: PermissionType):
             chat_id = update.effective_user.id
             user_id = db_session.get_user_data(chat_id).id
 
-            if user_id not in ADMINS:
+            if user_id not in db_session.get_admins():
                 update.message.reply_text(text["forbidden"])
                 return States.MENU
 

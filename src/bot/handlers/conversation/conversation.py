@@ -70,15 +70,25 @@ def add_user_tag(update: Update, context: CallbackContext):
     try:
         tag_id = db_session.get_tag_by_name(mssg).id
     except AttributeError:
-        return ask_conv_filters(update, context)
+        if status_idx != (len(status_list) - 1):
+            return ask_conv_filters(update, context)
+        else:
+            tag_id = None
 
-    try:
-        user_tag_list = context.user_data["user_tag_list"]
-        user_tag_list.append(tag_id)
-    except KeyError:
-        user_tag_list = []
-        user_tag_list.append(tag_id)
-        context.user_data["user_tag_list"] = user_tag_list
+    if tag_id != None:
+        try:
+            user_tag_list = context.user_data["user_tag_list"]
+            user_tag_list.append(tag_id)
+        except KeyError:
+            user_tag_list = []
+            user_tag_list.append(tag_id)
+            context.user_data["user_tag_list"] = user_tag_list
+    else:
+        try:
+            user_tag_list = context.user_data["user_tag_list"]
+        except KeyError:
+            user_tag_list = []
+            context.user_data["user_tag_list"] = user_tag_list
     print(user_tag_list)
 
     if status_idx == (len(status_list) - 1):

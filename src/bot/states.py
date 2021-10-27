@@ -42,3 +42,5 @@ class States(Enum):
     PUSH = 17
 
     EXISTING_REQUEST = 18
+
+    CHANGE_ADD_USER_TAG = 19

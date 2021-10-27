@@ -4,7 +4,6 @@ from telegram import ReplyKeyboardMarkup
 from telegram import Update
 from telegram.ext import CallbackContext
 
-from ...admins import ADMINS
 from ...data import text
 from ...db_functions import db_session
 from ...states import States
@@ -195,7 +194,7 @@ def everyday_news(*args):
         + "\nВсего {} пользователей:\n".format(statistics["total_users"][0])
     )
 
-    admin_ids = ADMINS
+    admin_ids = db_session.get_admins()
 
     if len(args) == 1:  # depends if it called by job_queue or updater
         context = args[0]

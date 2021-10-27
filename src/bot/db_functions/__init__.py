@@ -171,6 +171,13 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         session.commit()
 
     @local_session
+    def remove_user_tag(self, session, user_tag_id) -> None:
+        """ deletes user tag """
+        user_tag = session.query(UserTag).get(user_tag_id)
+        session.delete(user_tag)
+        session.commit()
+
+    @local_session
     def get_conv_request_active_by_user_id(
         self, session, chat_id
     ) -> ConversationRequest:

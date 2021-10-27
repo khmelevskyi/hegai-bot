@@ -72,7 +72,7 @@ def profile(update: Update, context: CallbackContext):
 
     reply_keyboard = [
         [text["change_name"], text["change_region"]],
-        [text["change_status"]],
+        [text["change_status"], text["change_tags"]],
         [text["main_menu"]],
     ]
     markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
@@ -246,3 +246,96 @@ def create_region_save(update: Update, context: CallbackContext):
     )
 
     return States.MENU
+
+
+### change tags
+def change_user_tags(update: Update, context: CallbackContext):
+    """ asks user for filters for finding a conversation """
+
+    chat_id = update.message.chat.id
+
+    user_tags = db_session.get_user_tags(chat_id)
+    if len(user_tags) > 0:
+        user_tags = db_session.get_user_tags(chat_id)
+        for user_tag in user_tags:
+            user_tag_id = user_tag.id
+            db_session.remove_user_tag(user_tag_id)
+
+    status_list = db_session.get_tag_statuses()
+    context.user_data["change_status_list"] = status_list
+    print(status_list)
+
+    reply_keyboard = [[text["skip"]], [text["cancel"]]]
+    try:
+        status_idx = context.user_data["change_status_idx"]
+    except KeyError:
+        status_idx = 0
+    print(status_idx)
+    try:
+        status = status_list[status_idx][0]
+    except IndexError:
+        context.user_data.pop("change_status_idx")
+        status = status_list[status_idx][0]
+
+    print(status)
+    context.user_data["change_status_idx"] = status_idx + 1
+    tag_list = db_session.get_tags_by_status(status)
+    for tag in tag_list:
+        tag_name = tag.name
+        reply_keyboard.append([tag_name])
+
+    markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
+
+    if status == "None":
+        status = "сферы"
+    context.bot.send_message(
+        chat_id=chat_id,
+        text=f"Выберите {status}, которые лучше всего вам подходят:",
+        reply_markup=markup,
+    )
+
+    return States.CHANGE_ADD_USER_TAG
+
+
+def change_add_user_tag(update: Update, context: CallbackContext):
+    """ pass """
+
+    chat_id = update.message.chat.id
+    mssg = update.message.text
+
+    status_list = context.user_data["change_status_list"]
+    status_idx = context.user_data["change_status_idx"]
+
+    try:
+        tag_id = db_session.get_tag_by_name(mssg).id
+    except AttributeError:
+        if status_idx != (len(status_list) - 1):
+            return change_user_tags(update, context)
+        else:
+            tag_id = None
+
+    if tag_id != None:
+        try:
+            user_tag_list = context.user_data["user_tag_list"]
+            user_tag_list.append(tag_id)
+        except KeyError:
+            user_tag_list = []
+            user_tag_list.append(tag_id)
+            context.user_data["user_tag_list"] = user_tag_list
+    else:
+        try:
+            user_tag_list = context.user_data["user_tag_list"]
+        except KeyError:
+            user_tag_list = []
+            context.user_data["user_tag_list"] = user_tag_list
+    print(user_tag_list)
+
+    if status_idx == (len(status_list) - 1):
+        context.user_data.pop("change_status_list")
+        context.user_data.pop("user_tag_list")
+        context.user_data.pop("change_status_idx")
+        for user_tag in user_tag_list:
+            db_session.add_user_tag(chat_id, user_tag)
+        return profile(update, context)
+
+    return change_user_tags(update, context)
