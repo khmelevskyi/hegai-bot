@@ -44,3 +44,7 @@ class States(Enum):
     EXISTING_REQUEST = 18
 
     CHANGE_ADD_USER_TAG = 19
+
+    CHOOSING_TAGS = 20
+
+    CHANGE_CHOOSING_TAGS = 21

@@ -4,20 +4,29 @@ from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from telegram import Update
 from telegram.ext import CallbackContext
+from telegram import InlineKeyboardButton
+from telegram import InlineKeyboardMarkup
+from loguru import logger
 
 from ...data import start_keyboard
 from ...data import text
 from ...db_functions import db_session
 from ...states import States
 from .utils import users
+from ..tags_chooser import TagsChooser
+
+tags_chooser = TagsChooser()
 
 # from ...db_functions import Action
 
 
 def profile(update: Update, context: CallbackContext):
     """ basic account info """
-
-    chat_id = update.message.chat.id
+    logger.info("showing profile")
+    try:
+        chat_id = update.message.chat.id
+    except AttributeError:
+        chat_id = update.callback_query.message.chat.id
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)
@@ -27,9 +36,7 @@ def profile(update: Update, context: CallbackContext):
     # db_session.log_action(chat_id=chat_id, action=Action.profile)
 
     if user.notion_id is None:
-        context.bot.send_message(
-            chat_id=update.message.chat.id, text=text["not_registered"]
-        )
+        context.bot.send_message(chat_id=chat_id, text=text["not_registered"])
         return States.MENU
 
     conv_open = user.conversation_open
@@ -89,6 +96,7 @@ def profile(update: Update, context: CallbackContext):
 ### change name
 def change_name(update: Update, context: CallbackContext):
     """ edits user's name """
+    logger.info("changing name")
 
     chat_id = update.message.chat.id
 
@@ -98,7 +106,7 @@ def change_name(update: Update, context: CallbackContext):
     markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
 
     context.bot.send_message(
-        chat_id=chat_id, text="Enter your new name:", reply_markup=markup
+        chat_id=chat_id, text="Введите новое имя:", reply_markup=markup
     )
 
     return States.CHANGE_NAME
@@ -122,6 +130,7 @@ def change_name_save(update: Update, context: CallbackContext):
 ### change region
 def change_region(update: Update, context: CallbackContext):
     """ edits user's region """
+    logger.info("changing region")
 
     chat_id = update.message.chat.id
 
@@ -135,7 +144,7 @@ def change_region(update: Update, context: CallbackContext):
     markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
 
     context.bot.send_message(
-        chat_id=chat_id, text="Choose a new region:", reply_markup=markup
+        chat_id=chat_id, text="Выберите регион:", reply_markup=markup
     )
 
     return States.CHANGE_REGION
@@ -164,6 +173,7 @@ def change_region_save(update: Update, context: CallbackContext):
 ### change status
 def change_status(update: Update, context: CallbackContext):
     """ edits user's status """
+    logger.info("changing status")
 
     chat_id = update.message.chat.id
 
@@ -182,7 +192,7 @@ def change_status(update: Update, context: CallbackContext):
 
     context.bot.send_message(
         chat_id=chat_id,
-        text=f"Chnage status to: <b>{status_text}</b>",
+        text=f"Поменять статус на: <b>{status_text}</b>?",
         reply_markup=markup,
         parse_mode=ParseMode.HTML,
     )
@@ -251,8 +261,10 @@ def create_region_save(update: Update, context: CallbackContext):
 ### change tags
 def change_user_tags(update: Update, context: CallbackContext):
     """ asks user for filters for finding a conversation """
+    logger.info("changing user tags")
 
     chat_id = update.message.chat.id
+    tags_chooser.flush()
 
     user_tags = db_session.get_user_tags(chat_id)
     if len(user_tags) > 0:
@@ -261,81 +273,133 @@ def change_user_tags(update: Update, context: CallbackContext):
             user_tag_id = user_tag.id
             db_session.remove_user_tag(user_tag_id)
 
-    status_list = db_session.get_tag_statuses()
-    context.user_data["change_status_list"] = status_list
+    status_list = [ii[0] for ii in db_session.get_tag_statuses()]
     print(status_list)
+    tags_chooser.statuses = status_list
 
-    reply_keyboard = [[text["skip"]], [text["cancel"]]]
+    show_page(update, context)
+
+    return States.CHANGE_CHOOSING_TAGS
+
+
+def show_page(update: Update, context: CallbackContext):
+    """ showing page of user tags """
     try:
-        status_idx = context.user_data["change_status_idx"]
-    except KeyError:
-        status_idx = 0
-    print(status_idx)
-    try:
-        status = status_list[status_idx][0]
-    except IndexError:
-        context.user_data.pop("change_status_idx")
-        status = status_list[status_idx][0]
+        chat_id = update.message.chat.id
+    except AttributeError:
+        chat_id = update.callback_query.message.chat.id
 
-    print(status)
-    context.user_data["change_status_idx"] = status_idx + 1
-    tag_list = db_session.get_tags_by_status(status)
-    for tag in tag_list:
-        tag_name = tag.name
-        reply_keyboard.append([tag_name])
+    tags_chooser.status_tags = tags_chooser.curr_status
 
-    markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
+    tags = tags_chooser.page_tags
+    print(tags)
 
-    if status == "None":
-        status = "сферы"
-    context.bot.send_message(
-        chat_id=chat_id,
-        text=f"Выберите {status}, которые лучше всего вам подходят:",
-        reply_markup=markup,
+    inline_keyboards = []
+    for ii in range(0, len(tags), 2):
+        tag = tags[ii]
+        if len(tags) % 2 != 0 and ii == len(tags) - 1:
+            inline_keyboards.append(
+                [
+                    InlineKeyboardButton(
+                        text=tags[ii].name, callback_data=f"tag-{tags[ii].name}"
+                    )
+                ]
+            )
+        else:
+            tag_n = tags[ii + 1]
+            inline_keyboards.append(
+                [
+                    InlineKeyboardButton(
+                        text=tag.name, callback_data=f"tag-{tag.name}"
+                    ),
+                    InlineKeyboardButton(
+                        text=tag_n.name, callback_data=f"tag-{tag_n.name}"
+                    ),
+                ]
+            )
+
+    inline_keyboards.append(
+        [
+            InlineKeyboardButton(text="⬅", callback_data="back"),
+            InlineKeyboardButton(text="➡", callback_data="next"),
+        ]
+    )
+    inline_keyboards.append(
+        [InlineKeyboardButton(text=text["cancel"], callback_data="cancel")]
     )
 
-    return States.CHANGE_ADD_USER_TAG
+    if tags_chooser.curr_status == tags_chooser.statuses[-1]:
+        inline_keyboards.append(
+            [InlineKeyboardButton(text=text["finish"], callback_data="finish_t")]
+        )
+    else:
+        inline_keyboards.append(
+            [
+                InlineKeyboardButton(
+                    text=text["next_category"], callback_data="category_n"
+                )
+            ]
+        )
+
+    markup = InlineKeyboardMarkup(
+        inline_keyboards,
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
+    try:
+        if tags_chooser.curr_status == "None":
+            update.callback_query.edit_message_text("Выберите сферу")
+        else:
+            update.callback_query.edit_message_text(
+                f"Выберите {tags_chooser.curr_status}"
+            )
+        update.callback_query.edit_message_reply_markup(markup)
+    except AttributeError:
+        context.bot.send_message(
+            chat_id=chat_id,
+            text="Выберите Теги",
+            reply_markup=markup,
+        )
+
+    return States.CHANGE_CHOOSING_TAGS
 
 
 def change_add_user_tag(update: Update, context: CallbackContext):
-    """ pass """
+    """ adding user tag to db """
+    logger.info("adding user tag")
 
-    chat_id = update.message.chat.id
-    mssg = update.message.text
+    chat_id = update.callback_query.message.chat.id
+    update.callback_query.answer("Тэг успешно добавлен!")
+    data = update.callback_query.data
+    print(data)
 
-    status_list = context.user_data["change_status_list"]
-    status_idx = context.user_data["change_status_idx"]
+    tag_name = data.replace("tag-", "")
 
-    try:
-        tag_id = db_session.get_tag_by_name(mssg).id
-    except AttributeError:
-        if status_idx != (len(status_list) - 1):
-            return change_user_tags(update, context)
-        else:
-            tag_id = None
+    tag_id = db_session.get_tag_by_name(tag_name).id
 
-    if tag_id != None:
-        try:
-            user_tag_list = context.user_data["user_tag_list"]
-            user_tag_list.append(tag_id)
-        except KeyError:
-            user_tag_list = []
-            user_tag_list.append(tag_id)
-            context.user_data["user_tag_list"] = user_tag_list
-    else:
-        try:
-            user_tag_list = context.user_data["user_tag_list"]
-        except KeyError:
-            user_tag_list = []
-            context.user_data["user_tag_list"] = user_tag_list
-    print(user_tag_list)
+    db_session.add_user_tag(chat_id, tag_id)
 
-    if status_idx == (len(status_list) - 1):
-        context.user_data.pop("change_status_list")
-        context.user_data.pop("user_tag_list")
-        context.user_data.pop("change_status_idx")
-        for user_tag in user_tag_list:
-            db_session.add_user_tag(chat_id, user_tag)
-        return profile(update, context)
+    # show_page(update, context)
 
-    return change_user_tags(update, context)
+
+def change_next_back_page_tags(update: Update, context: CallbackContext):
+    """ changing page of user tags to next/back """
+    update.callback_query.answer()
+    data = update.callback_query.data
+    print(data)
+
+    tags_chooser.page = data
+
+    show_page(update, context)
+
+
+def change_next_category_tags(update: Update, context: CallbackContext):
+    """ changing status of user tags to next """
+    update.callback_query.answer()
+    data = update.callback_query.data
+    print(data)
+
+    tags_chooser.page = "new"
+    tags_chooser.curr_status = data
+
+    show_page(update, context)

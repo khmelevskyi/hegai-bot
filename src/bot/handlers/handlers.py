@@ -52,17 +52,21 @@ def start_init(update: Update, context: CallbackContext):
 
 def start(update: Update, context: CallbackContext):
     """ start command an msg """
-
-    chat = update.message.chat
+    logger.info("start menu")
+    try:
+        chat = update.message.chat
+    except AttributeError:
+        chat = update.callback_query.message.chat
+        update.callback_query.answer()
     db_session.add_user(chat=chat)
 
-    chat_id = update.message.chat.id
+    chat_id = chat.id
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)
 
     context.bot.send_message(
-        chat_id=update.message.chat.id, text=text["start"], reply_markup=start_markup()
+        chat_id=chat_id, text=text["start"], reply_markup=start_markup()
     )
 
     if not db_session.user_is_registered(chat_id=chat_id):
@@ -72,6 +76,7 @@ def start(update: Update, context: CallbackContext):
 
 def stop(update: Update, context: CallbackContext):
     """ stops conversation handler """
+    logger.info("stop command")
 
     chat_id = update.message.chat.id
     stop_text = text["reload"]
@@ -89,6 +94,7 @@ def stop(update: Update, context: CallbackContext):
 
 def connect_to_admin(update: Update, context: CallbackContext):
     """ sends user a link to admin """
+    logger.info("connect to admin command")
 
     chat_id = update.message.chat.id
     context.bot.send_message(

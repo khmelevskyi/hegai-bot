@@ -11,9 +11,14 @@ from .db_functions import db_session
 from .handlers import add_user_tag
 from .handlers import admin
 from .handlers import ask_conv_filters
+from .handlers import next_back_page_tags
+from .handlers import next_category_tags
+from .handlers import create_conv_request
 from .handlers import ask_feedback_result
 from .handlers import change_user_tags
 from .handlers import change_add_user_tag
+from .handlers import change_next_back_page_tags
+from .handlers import change_next_category_tags
 from .handlers import change_name
 from .handlers import change_name_save
 from .handlers import change_region
@@ -107,9 +112,7 @@ conv_handler = ConversationHandler(
         States.MENU: [
             *necessary_handlers,
             MessageHandler(Filters.text([text["profile"]]), profile),
-            MessageHandler(
-                Filters.text([text["find_conv"]]), ask_conv_filters, pass_job_queue=True
-            ),
+            MessageHandler(Filters.text([text["find_conv"]]), ask_conv_filters),
             MessageHandler(Filters.text([text["my_contacts"]]), my_contacts),
             MessageHandler(Filters.text([text["connect_admin"]]), connect_to_admin),
         ],
@@ -164,6 +167,24 @@ conv_handler = ConversationHandler(
             *necessary_handlers,
             MessageHandler(Filters.text([text["cancel"]]), start),
             MessageHandler(Filters.text, change_add_user_tag),
+        ],
+        States.CHOOSING_TAGS: [
+            MessageHandler(Filters.text([text["cancel"]]), start),
+            CallbackQueryHandler(add_user_tag, pattern="^tag-"),
+            CallbackQueryHandler(next_back_page_tags, pattern="next"),
+            CallbackQueryHandler(next_back_page_tags, pattern="back"),
+            CallbackQueryHandler(start, pattern="cancel"),
+            CallbackQueryHandler(next_category_tags, pattern="category_n"),
+            CallbackQueryHandler(create_conv_request, pattern="finish_t"),
+        ],
+        States.CHANGE_CHOOSING_TAGS: [
+            MessageHandler(Filters.text([text["cancel"]]), start),
+            CallbackQueryHandler(change_add_user_tag, pattern="^tag-"),
+            CallbackQueryHandler(change_next_back_page_tags, pattern="next"),
+            CallbackQueryHandler(change_next_back_page_tags, pattern="back"),
+            CallbackQueryHandler(profile, pattern="cancel"),
+            CallbackQueryHandler(change_next_category_tags, pattern="category_n"),
+            CallbackQueryHandler(profile, pattern="finish_t"),
         ],
         # -----------------------------------------------------------
         # Registration
