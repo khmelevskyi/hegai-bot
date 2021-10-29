@@ -106,7 +106,7 @@ def show_page(update: Update, context: CallbackContext):
     )
     try:
         if tags_chooser.curr_status == "None":
-            update.callback_query.edit_message_text("Выберите сферу")
+            update.callback_query.edit_message_text("Выберите Сферы")
         else:
             update.callback_query.edit_message_text(
                 f"Выберите {tags_chooser.curr_status}"
@@ -115,7 +115,7 @@ def show_page(update: Update, context: CallbackContext):
     except AttributeError:
         context.bot.send_message(
             chat_id=chat_id,
-            text="Выберите Теги",
+            text=f"Выберите {tags_chooser.curr_status}",
             reply_markup=markup,
         )
 
