@@ -227,9 +227,11 @@ def find_conversation(conv_request, context):
     user_tags_sorted = sorted(user_tags)
     print(user_tags_sorted)
     potential_users = db_session.get_open_users()
+    contacts = db_session.get_contacts(conv_request.user_id)
+    contacts = [ii[0] for ii in contacts]
     for user in potential_users:
 
-        if user.id != conv_request.user_id:
+        if user.id != conv_request.user_id and user.id not in contacts:
             user_two_tags = db_session.get_user_tags_by_user_id(user.id)
             user_two_tags_names = []
             for user_two_tag in user_two_tags:
