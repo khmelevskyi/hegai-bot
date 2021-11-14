@@ -15,13 +15,7 @@ class States(Enum):
 
     ASK_CONV_OPEN = 4
 
-    CHANGE_NAME = 5
-
-    CHANGE_REGION = 6
-
     CHANGE_STATUS = 7
-
-    CREATE_REGION = 8
 
     FIND_CONVERSATION = 9
 
@@ -42,8 +36,6 @@ class States(Enum):
     PUSH = 17
 
     EXISTING_REQUEST = 18
-
-    CHANGE_ADD_USER_TAG = 19
 
     CHOOSING_TAGS = 20
 

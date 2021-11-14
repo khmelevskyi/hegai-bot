@@ -15,21 +15,11 @@ from .handlers import next_back_page_tags
 from .handlers import next_category_tags
 from .handlers import create_conv_request
 from .handlers import ask_feedback_result
-from .handlers import change_user_tags
-from .handlers import change_add_user_tag
-from .handlers import change_next_back_page_tags
-from .handlers import change_next_category_tags
-from .handlers import change_name
-from .handlers import change_name_save
-from .handlers import change_region
-from .handlers import change_region_save
 from .handlers import change_status
 from .handlers import change_status_save
 from .handlers import check_notion_username
 from .handlers import check_username
 from .handlers import connect_to_admin
-from .handlers import create_region
-from .handlers import create_region_save
 from .handlers import find_conversation
 from .handlers import cancel_request
 from .handlers import my_contacts
@@ -78,7 +68,6 @@ push_status_handler = CommandHandler(
 necessary_handlers = [
     CommandHandler("start", start_init, pass_job_queue=True),
     admin_handler,
-    CommandHandler("new_region", create_region),
     CallbackQueryHandler(
         ask_feedback_result,
         pass_chat_data=True,
@@ -119,30 +108,12 @@ conv_handler = ConversationHandler(
         States.ACCOUNT: [
             *necessary_handlers,
             MessageHandler(Filters.text([text["main_menu"]]), start),
-            MessageHandler(Filters.text([text["change_name"]]), change_name),
-            MessageHandler(Filters.text([text["change_region"]]), change_region),
             MessageHandler(Filters.text([text["change_status"]]), change_status),
-            MessageHandler(Filters.text([text["change_tags"]]), change_user_tags),
-        ],
-        States.CHANGE_NAME: [
-            *necessary_handlers,
-            MessageHandler(Filters.text([text["cancel"]]), profile),
-            MessageHandler(Filters.text, change_name_save),
-        ],
-        States.CHANGE_REGION: [
-            *necessary_handlers,
-            MessageHandler(Filters.text([text["cancel"]]), profile),
-            MessageHandler(Filters.text, change_region_save),
         ],
         States.CHANGE_STATUS: [
             *necessary_handlers,
             MessageHandler(Filters.text([text["cancel"]]), profile),
             MessageHandler(Filters.text([text["yes"]]), change_status_save),
-        ],
-        States.CREATE_REGION: [
-            *necessary_handlers,
-            MessageHandler(Filters.text([text["cancel"]]), start),
-            MessageHandler(Filters.text, create_region_save),
         ],
         States.ADD_USER_TAG: [
             *necessary_handlers,
@@ -163,11 +134,6 @@ conv_handler = ConversationHandler(
             *necessary_handlers,
             MessageHandler(Filters.text, save_feedback),
         ],
-        States.CHANGE_ADD_USER_TAG: [
-            *necessary_handlers,
-            MessageHandler(Filters.text([text["cancel"]]), start),
-            MessageHandler(Filters.text, change_add_user_tag),
-        ],
         States.CHOOSING_TAGS: [
             MessageHandler(Filters.text([text["cancel"]]), start),
             CallbackQueryHandler(add_user_tag, pattern="^tag-"),
@@ -176,15 +142,6 @@ conv_handler = ConversationHandler(
             CallbackQueryHandler(start, pattern="cancel"),
             CallbackQueryHandler(next_category_tags, pattern="category_n"),
             CallbackQueryHandler(create_conv_request, pattern="finish_t"),
-        ],
-        States.CHANGE_CHOOSING_TAGS: [
-            MessageHandler(Filters.text([text["cancel"]]), start),
-            CallbackQueryHandler(change_add_user_tag, pattern="^tag-"),
-            CallbackQueryHandler(change_next_back_page_tags, pattern="next"),
-            CallbackQueryHandler(change_next_back_page_tags, pattern="back"),
-            CallbackQueryHandler(profile, pattern="cancel"),
-            CallbackQueryHandler(change_next_category_tags, pattern="category_n"),
-            CallbackQueryHandler(profile, pattern="finish_t"),
         ],
         # -----------------------------------------------------------
         # Registration

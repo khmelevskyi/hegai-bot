@@ -28,5 +28,7 @@ disable=import-error,
         redefined-builtin,
         inconsistent-return-statements,
         redefined-outer-name,
+        super-init-not-called,
+        no-else-raise,
 [DESIGN]
 max-attributes=12

@@ -1,21 +1,23 @@
 """ basic info abount user and registrarion process for student and teacher """
+import os
+import requests
+
+from sqlalchemy import create_engine
 from telegram import ParseMode
 from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from telegram import Update
 from telegram.ext import CallbackContext
-from telegram import InlineKeyboardButton
-from telegram import InlineKeyboardMarkup
 from loguru import logger
+from dotenv import load_dotenv
 
 from ...data import start_keyboard
 from ...data import text
 from ...db_functions import db_session
 from ...states import States
 from .utils import users
-from ..tags_chooser import TagsChooser
 
-tags_chooser = TagsChooser()
+load_dotenv()
 
 # from ...db_functions import Action
 
@@ -33,6 +35,23 @@ def profile(update: Update, context: CallbackContext):
 
     user = db_session.get_user_data(chat_id)
 
+    props = get_profile()
+
+    cities = str(props["cities"]).replace("'", "").replace("[", "").replace("]", "")
+    functions = (
+        str(props["Function"]).replace("'", "").replace("[", "").replace("]", "")
+    )
+    hobbies = str(props["Hobby"]).replace("'", "").replace("[", "").replace("]", "")
+    industries = (
+        str(props["Industry"]).replace("'", "").replace("[", "").replace("]", "")
+    )
+    communities = (
+        str(props["Related to Focus (Лидер микросообщества)"])
+        .replace("'", "")
+        .replace("[", "")
+        .replace("]", "")
+    )
+
     # db_session.log_action(chat_id=chat_id, action=Action.profile)
 
     if user.notion_id is None:
@@ -45,41 +64,27 @@ def profile(update: Update, context: CallbackContext):
     else:
         conv_open = "Не открыт к разговору"
 
-    if user.region != None:
-        region_name = db_session.get_region(user.region).name
-    else:
-        region_name = "Не указан"
-
-    user_tags = db_session.get_user_tags(chat_id)
-    user_tags_names = []
-    for user_tag in user_tags:
-        tag_name = db_session.get_tag(user_tag.tag_id).name
-        user_tags_names.append(tag_name)
-
-    user_tags_names_str = str(user_tags_names)
-    user_tags_names = (
-        user_tags_names_str.replace("'", "").replace("[", "").replace("]", "")
-    )
-
     div = 30
     info = (
         f"<i>{user.full_name}</i>\n"
         + f"{text['account_n']} @{user.username}\n"
-        + f"Регион: {region_name}\n"
+        + f"Города: {cities}\n"
         + f"<i>id </i>: {chat_id}\n"
         # + f"<i>notion id </i>: {user.notion_id}\n"
         + "-" * div
         + f"\nСтатус: <b>{conv_open}</b>\n"
-        + f"\nТеги: {user_tags_names}\n"
+        + f"\n<b>Компетенции:</b> {functions}"
+        + f"\n<b>Хобби:</b> {hobbies}"
+        + f"\n<b>Отрасли:</b> {industries}"
+        + f"\n<b>Микросообщества:</b> {communities}\n"
         # + f"\nС нами с: {user.time_registered}\n"
         + "~" * (div // 2)
         + "\n"
-        + text["more_info"]
+        + "Если хотите изменить какую-либо информацию о себе в профиле, то измените нужные данные на своей странице в Notion, и изменения автоматически применятся здесь :)\n"
     )
 
     reply_keyboard = [
-        [text["change_name"], text["change_region"]],
-        [text["change_status"], text["change_tags"]],
+        [text["change_status"]],
         [text["main_menu"]],
     ]
     markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
@@ -91,83 +96,6 @@ def profile(update: Update, context: CallbackContext):
         parse_mode=ParseMode.HTML,
     )
     return States.ACCOUNT
-
-
-### change name
-def change_name(update: Update, context: CallbackContext):
-    """ edits user's name """
-    logger.info("changing name")
-
-    chat_id = update.message.chat.id
-
-    reply_keyboard = [
-        [text["cancel"]],
-    ]
-    markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
-
-    context.bot.send_message(
-        chat_id=chat_id, text="Введите новое имя:", reply_markup=markup
-    )
-
-    return States.CHANGE_NAME
-
-
-def change_name_save(update: Update, context: CallbackContext):
-    """ saves new user's name """
-
-    chat_id = update.message.chat.id
-    mssg = update.message.text
-
-    context.bot.send_message(
-        chat_id=chat_id, text=text["edit_success"], reply_markup=ReplyKeyboardRemove()
-    )
-
-    db_session.save_new_name(chat_id, mssg)
-
-    return profile(update, context)
-
-
-### change region
-def change_region(update: Update, context: CallbackContext):
-    """ edits user's region """
-    logger.info("changing region")
-
-    chat_id = update.message.chat.id
-
-    regions = db_session.get_all_regions()
-
-    reply_keyboard = []
-    for region in regions:
-        reply_keyboard.append([region.name])
-    reply_keyboard.append([text["cancel"]])
-
-    markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
-
-    context.bot.send_message(
-        chat_id=chat_id, text="Выберите регион:", reply_markup=markup
-    )
-
-    return States.CHANGE_REGION
-
-
-def change_region_save(update: Update, context: CallbackContext):
-    """ saves new user's region """
-
-    chat_id = update.message.chat.id
-    mssg = update.message.text
-
-    regions = db_session.get_all_regions()
-    for region in regions:
-        if region.name == mssg:
-            region_id = region.id
-
-    context.bot.send_message(
-        chat_id=chat_id, text=text["edit_success"], reply_markup=ReplyKeyboardRemove()
-    )
-
-    db_session.save_new_region(chat_id, region_id)
-
-    return profile(update, context)
 
 
 ### change status
@@ -214,21 +142,6 @@ def change_status_save(update: Update, context: CallbackContext):
     return profile(update, context)
 
 
-def create_region(update: Update, context: CallbackContext):
-    """ creates a new region """
-
-    chat_id = update.message.chat.id
-
-    reply_keyboard = [[text["cancel"]]]
-    markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
-
-    context.bot.send_message(
-        chat_id=chat_id, text="Enter a region name", reply_markup=markup
-    )
-
-    return States.CREATE_REGION
-
-
 def start_markup() -> ReplyKeyboardMarkup:
     """ markup for start keyboard """
     markup = ReplyKeyboardMarkup(
@@ -237,169 +150,123 @@ def start_markup() -> ReplyKeyboardMarkup:
     return markup
 
 
-def create_region_save(update: Update, context: CallbackContext):
-    """ saves a new region """
+PAGE_ID = "a64b82078a7d4d9babecb16647d5e95a"
+NOTION_URL = "https://api.notion.com/v1/pages/"
 
-    chat_id = update.message.chat.id
-    mssg = update.message.text
+db_username = os.getenv("DB_USERNAME")
+password = os.getenv("DB_PASSWORD")
+host = os.getenv("DB_HOST")
+port = os.getenv("DB_PORT")
+database = os.getenv("DB_DATABASE")
 
-    db_session.create_region(mssg)
-
-    context.bot.send_message(
-        chat_id=chat_id,
-        text="Region created successfully!",
-        reply_markup=ReplyKeyboardRemove(),
-    )
-
-    context.bot.send_message(
-        chat_id=update.message.chat.id, text=text["start"], reply_markup=start_markup()
-    )
-
-    return States.MENU
+engine = create_engine(
+    f"postgresql://{db_username}:{password}@{host}:{port}/{database}"
+)
 
 
-### change tags
-def change_user_tags(update: Update, context: CallbackContext):
-    """ asks user for filters for finding a conversation """
-    logger.info("changing user tags")
+class ApiError(Exception):
+    """An API Error Exception"""
 
-    chat_id = update.message.chat.id
-    tags_chooser.flush()
+    def __init__(self, status):
+        self.status = status
 
-    user_tags = db_session.get_user_tags(chat_id)
-    if len(user_tags) > 0:
-        user_tags = db_session.get_user_tags(chat_id)
-        for user_tag in user_tags:
-            user_tag_id = user_tag.id
-            db_session.remove_user_tag(user_tag_id)
-
-    status_list = [ii[0] for ii in db_session.get_tag_statuses()]
-    print(status_list)
-    tags_chooser.statuses = status_list
-
-    show_page(update, context)
-
-    return States.CHANGE_CHOOSING_TAGS
+    def __str__(self):
+        return "APIError: status={}".format(self.status)
 
 
-def show_page(update: Update, context: CallbackContext):
-    """ showing page of user tags """
-    try:
-        chat_id = update.message.chat.id
-    except AttributeError:
-        chat_id = update.callback_query.message.chat.id
+class NotionSync:
+    """ object with data from notion """
 
-    tags_chooser.status_tags = tags_chooser.curr_status
+    def __init__(self):
+        """ init """
+        self.properties_data = {}
 
-    tags = tags_chooser.page_tags
-    print(tags)
+        self.properties_data["notion_id"] = []
+        self.properties_data["username"] = []
+        self.properties_data["full_name"] = []
+        self.properties_data["cities"] = []
+        self.properties_data["Hobby"] = []
+        self.properties_data["Function"] = []
+        self.properties_data["Industry"] = []
+        self.properties_data["Тег"] = []
+        self.properties_data["Related to Focus (Лидер микросообщества)"] = []
 
-    inline_keyboards = []
-    for ii in range(0, len(tags), 2):
-        tag = tags[ii]
-        if len(tags) % 2 != 0 and ii == len(tags) - 1:
-            inline_keyboards.append(
-                [
-                    InlineKeyboardButton(
-                        text=tags[ii].name, callback_data=f"tag-{tags[ii].name}"
-                    )
-                ]
-            )
+    def query_databases(self, integration_token=os.getenv("NOTION_KEY")):
+        """ queries the databases """
+        database_url = NOTION_URL + PAGE_ID
+        response = requests.get(
+            database_url,
+            headers={
+                "Authorization": f"Bearer {integration_token}",
+                "Notion-Version": "2021-08-16",
+            },
+        )
+
+        if response.status_code != 200:
+            raise ApiError(f"Response Status: {response.status_code}")
         else:
-            tag_n = tags[ii + 1]
-            inline_keyboards.append(
-                [
-                    InlineKeyboardButton(
-                        text=tag.name, callback_data=f"tag-{tag.name}"
-                    ),
-                    InlineKeyboardButton(
-                        text=tag_n.name, callback_data=f"tag-{tag_n.name}"
-                    ),
-                ]
-            )
+            return response.json()
 
-    inline_keyboards.append(
-        [
-            InlineKeyboardButton(text="⬅", callback_data="back"),
-            InlineKeyboardButton(text="➡", callback_data="next"),
-        ]
-    )
-    inline_keyboards.append(
-        [InlineKeyboardButton(text=text["cancel"], callback_data="cancel")]
-    )
+    def get_properties_titles(self, data_json):
+        """ returns all the property titles of an object """
+        return list(data_json["properties"].keys())
 
-    if tags_chooser.curr_status == tags_chooser.statuses[-1]:
-        inline_keyboards.append(
-            [InlineKeyboardButton(text=text["finish"], callback_data="finish_t")]
-        )
-    else:
-        inline_keyboards.append(
-            [
-                InlineKeyboardButton(
-                    text=text["next_category"], callback_data="category_n"
-                )
-            ]
-        )
+    def get_properties_data(self, data_json, properties):
+        """ returns all the data for all objects """
+        notion_id = data_json["id"]
+        self.properties_data["notion_id"].append(notion_id)
 
-    markup = InlineKeyboardMarkup(
-        inline_keyboards,
-        resize_keyboard=True,
-        one_time_keyboard=True,
-    )
-    try:
-        if tags_chooser.curr_status == "None":
-            update.callback_query.edit_message_text("Выберите Сферы")
-        else:
-            update.callback_query.edit_message_text(
-                f"Выберите {tags_chooser.curr_status}"
-            )
-        update.callback_query.edit_message_reply_markup(markup)
-    except AttributeError:
-        context.bot.send_message(
-            chat_id=chat_id,
-            text=f"Выберите {tags_chooser.curr_status}",
-            reply_markup=markup,
-        )
+        for p in properties:
+            if p == "Telegram":
 
-    return States.CHANGE_CHOOSING_TAGS
+                url = data_json["properties"][p]["url"]
+                if url == None:
+                    url = None
+                elif "t.me" in url and "https" in url:
+                    url = url.replace("https://t.me/", "")
+                elif "t.me" in url and "https" not in url:
+                    url = url.replace("t.me/", "")
+                elif "http" in url:
+                    url = url.replace("https://", "")
+                elif "@" in url:
+                    url = url.replace("@", "")
+                self.properties_data["username"].append(url)
+
+            elif p == "Name":
+                name = data_json["properties"][p]["title"][0]["text"]["content"]
+                self.properties_data["full_name"].append(name)
+
+            elif p == "Города":
+                elems = data_json["properties"][p]["multi_select"]
+                for elem in elems:
+                    name = elem["name"]
+                    self.properties_data["cities"].append(name)
+
+            elif p in [
+                "Hobby",
+                "Function",
+                "Industry",
+                "Тег",
+                "Related to Focus (Лидер микросообщества)",
+            ]:
+                elems = data_json["properties"][p]["relation"]
+                for elem in elems:
+                    tag_notion_id = elem["id"]
+                    try:
+                        name = db_session.get_tag_by_notion_id(tag_notion_id).name
+                    except AttributeError:
+                        continue
+                    self.properties_data[p].append(name)
+
+        return self.properties_data
 
 
-def change_add_user_tag(update: Update, context: CallbackContext):
-    """ adding user tag to db """
-    logger.info("adding user tag")
+def get_profile(*args):
+    """ returns the profile info of an user """
+    nsync = NotionSync()
 
-    chat_id = update.callback_query.message.chat.id
-    update.callback_query.answer("Тэг успешно добавлен!")
-    data = update.callback_query.data
-    print(data)
+    data = nsync.query_databases()
+    properties = nsync.get_properties_titles(data)
+    properties_data = nsync.get_properties_data(data, properties)
 
-    tag_name = data.replace("tag-", "")
-
-    tag_id = db_session.get_tag_by_name(tag_name).id
-
-    db_session.add_user_tag(chat_id, tag_id)
-
-    # show_page(update, context)
-
-
-def change_next_back_page_tags(update: Update, context: CallbackContext):
-    """ changing page of user tags to next/back """
-    update.callback_query.answer()
-    data = update.callback_query.data
-    print(data)
-
-    tags_chooser.page = data
-
-    show_page(update, context)
-
-
-def change_next_category_tags(update: Update, context: CallbackContext):
-    """ changing status of user tags to next """
-    update.callback_query.answer()
-    data = update.callback_query.data
-    print(data)
-
-    tags_chooser.page = "new"
-    tags_chooser.curr_status = data
-
-    show_page(update, context)
+    return properties_data
