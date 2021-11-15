@@ -11,6 +11,7 @@ from telegram.ext import CallbackContext
 from loguru import logger
 from dotenv import load_dotenv
 
+from ...db_functions import Action
 from ...data import start_keyboard
 from ...data import text
 from ...db_functions import db_session
@@ -32,6 +33,8 @@ def profile(update: Update, context: CallbackContext):
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)
+
+    db_session.log_action(chat_id=chat_id, action=Action.profile)
 
     user = db_session.get_user_data(chat_id)
 

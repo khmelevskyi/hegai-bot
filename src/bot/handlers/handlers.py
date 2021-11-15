@@ -12,6 +12,7 @@ from telegram.chat import Chat
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler
 
+from ..db_functions import Action
 from ..data import start_keyboard
 from ..data import text
 from ..db_functions import db_session
@@ -64,6 +65,8 @@ def start(update: Update, context: CallbackContext):
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)
+
+    db_session.log_action(chat_id=chat_id, action=Action.now)
 
     context.bot.send_message(
         chat_id=chat_id, text=text["start"], reply_markup=start_markup()

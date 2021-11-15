@@ -229,10 +229,6 @@ class Action(Base):
 
     # static defenition for insertion safety
     now = "now"
-    today = "today"
-    tomorrow = "tomorrow"
-    week = "week"
-    next_week = "next_week"
     ban = "ban"
     profile = "profile"
     share = "share"

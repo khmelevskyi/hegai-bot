@@ -419,7 +419,8 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         """ log which action has user performed """
 
         action_id = self.action_types[action]
-        new_action = UserAction(chat_id=chat_id, action=action_id)
+        user = self.get_user_data(chat_id)
+        new_action = UserAction(user_id=user.id, action=action_id)
         session.add(new_action)
         session.commit()
 
