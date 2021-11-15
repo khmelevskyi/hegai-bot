@@ -16,8 +16,47 @@ from ...db_functions import db_session
 from ...states import States
 from ..handlers import start
 from ..tags_chooser import TagsChooser
+from ..account import get_profile
 
 tags_chooser = TagsChooser()
+
+
+def default_or_choose(update: Update, context: CallbackContext):
+    """ asks user whether to use his profile tags or choose new ones """
+    chat_id = update.message.chat.id
+
+    conv_request = db_session.get_conv_request_active_by_user_id(chat_id)
+    if conv_request:
+
+        reply_keyboard = [
+            [text["ok"]],
+            [text["cancel_request"]],
+        ]
+        markup = ReplyKeyboardMarkup(
+            reply_keyboard, resize_keyboard=True, selective=True
+        )
+
+        context.bot.send_message(
+            chat_id=chat_id,
+            text="У Вас уже есть активный запрос на разговор, мы Вас оповестим, когда найдем кого-то!",
+            reply_markup=markup,
+        )
+        return States.EXISTING_REQUEST
+
+    reply_keyboard = [
+        [text["use_profile_tags"]],
+        [text["choose_tags_yourself"]],
+        [text["back"]],
+    ]
+    markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
+
+    context.bot.send_message(
+        chat_id=chat_id,
+        text="Использовать теги из Вашего профиля или хотите выбрать теги для поиска вручную?",
+        reply_markup=markup,
+    )
+
+    return States.DEFAULT_TAGS_OR_NEW
 
 
 def ask_conv_filters(update: Update, context: CallbackContext):
@@ -25,13 +64,26 @@ def ask_conv_filters(update: Update, context: CallbackContext):
     logger.info("asking for user tags")
 
     chat_id = update.message.chat.id
+    answer = update.message.text
     tags_chooser.flush()
 
     user_tags = db_session.get_user_tags(chat_id)
-    if len(user_tags) > 0:
+    for user_tag in user_tags:
+        db_session.remove_user_tag(user_tag.id)
+
+    if answer == text["use_profile_tags"]:
+        profile_data = get_profile()
+        tags = profile_data["Function"] + profile_data["Industry"]
+        print(tags)
+        for tag in tags:
+            try:
+                tag_id = db_session.get_tag_by_name(tag).id
+            except AttributeError:
+                continue
+            db_session.add_user_tag(chat_id, tag_id)
         return create_conv_request(update, context)
 
-    status_list = [ii[0] for ii in db_session.get_tag_statuses()]
+    status_list = ["Компетенции", "Отрасли"]
     print(status_list)
     tags_chooser.statuses = status_list
 
@@ -172,21 +224,6 @@ def create_conv_request(update: Update, context: CallbackContext):
     except AttributeError:
         chat_id = update.callback_query.message.chat.id
 
-    conv_request = db_session.get_conv_request_active_by_user_id(chat_id)
-    if conv_request:
-
-        reply_keyboard = [[text["ok"]], [text["cancel_request"]]]
-        markup = ReplyKeyboardMarkup(
-            reply_keyboard, resize_keyboard=True, selective=True
-        )
-
-        context.bot.send_message(
-            chat_id=chat_id,
-            text="У Вас уже есть активный запрос на разговор, мы Вас оповестим, когда найдем кого-то!",
-            reply_markup=markup,
-        )
-        return States.EXISTING_REQUEST
-
     context.bot.send_message(
         chat_id=chat_id,
         text="Отлично! Ищем для Вас собеседника...",
@@ -283,9 +320,9 @@ def user_not_found(conv_request, context):
 
     user_tags = db_session.get_user_tags(user_one.chat_id)
     text_tags = "\n"
-    status_list = db_session.get_tag_statuses()
+    status_list = ["Компетенции", "Отрасли"]
     for status in status_list:
-        status_name = status[0]
+        status_name = status
         has_tags = False
         text_status = f"Категория: {status_name}\n"
         for user_tag in user_tags:

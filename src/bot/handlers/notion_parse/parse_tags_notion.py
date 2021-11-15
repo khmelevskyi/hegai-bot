@@ -123,7 +123,7 @@ def update_object(obj, new_obj, notion_id):
     for dict_key in dict_keys:
         if obj_dict[dict_key] != new_obj[dict_key]:
             query = f"UPDATE public.tag SET {dict_key} = '{new_obj[dict_key]}' WHERE notion_id = '{notion_id}';"
-            # print(query)
+            print(query)
             engine.execute(
                 query,
             )
@@ -135,7 +135,7 @@ def object_to_sql(new_obj):
     dict_keys = new_obj.keys()
     str_t = str(tuple([dict_key for dict_key in dict_keys])).replace("'", "")
     query = f"INSERT INTO public.tag {str_t} VALUES{tuple([str(new_obj[dict_key]) for dict_key in dict_keys])};"
-    # print(query)
+    print(query)
     engine.execute(
         query,
     )

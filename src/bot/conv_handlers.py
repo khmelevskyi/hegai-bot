@@ -10,6 +10,7 @@ from .data import URL_BUTTON_REGEX
 from .db_functions import db_session
 from .handlers import add_user_tag
 from .handlers import admin
+from .handlers import default_or_choose
 from .handlers import ask_conv_filters
 from .handlers import next_back_page_tags
 from .handlers import next_category_tags
@@ -101,7 +102,7 @@ conv_handler = ConversationHandler(
         States.MENU: [
             *necessary_handlers,
             MessageHandler(Filters.text([text["profile"]]), profile),
-            MessageHandler(Filters.text([text["find_conv"]]), ask_conv_filters),
+            MessageHandler(Filters.text([text["find_conv"]]), default_or_choose),
             MessageHandler(Filters.text([text["my_contacts"]]), my_contacts),
             MessageHandler(Filters.text([text["connect_admin"]]), connect_to_admin),
         ],
@@ -120,8 +121,16 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text([text["cancel"]]), start),
             MessageHandler(Filters.text, add_user_tag),
         ],
+        States.DEFAULT_TAGS_OR_NEW: [
+            *necessary_handlers,
+            MessageHandler(
+                Filters.text([text["use_profile_tags"], text["choose_tags_yourself"]]),
+                ask_conv_filters,
+            ),
+        ],
         States.FIND_CONVERSATION: [
             *necessary_handlers,
+            MessageHandler(Filters.text([text["back"]]), start),
             MessageHandler(Filters.text([text["cancel"]]), start),
             MessageHandler(Filters.text, find_conversation, pass_job_queue=True),
         ],

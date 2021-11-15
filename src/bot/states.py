@@ -17,6 +17,8 @@ class States(Enum):
 
     CHANGE_STATUS = 7
 
+    DEFAULT_TAGS_OR_NEW = 8
+
     FIND_CONVERSATION = 9
 
     ASK_FEEDBACK = 10

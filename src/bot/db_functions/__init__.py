@@ -249,6 +249,7 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         """ returns all the conversation requests that are active and time.now() - time_created() => 3 days """
         conv_requests = session.query(ConversationRequest).filter(
             ConversationRequest.active == True,
+            ConversationRequest.user_found != None,
             ConversationRequest.time_posted <= local_time() - timedelta(days=3),
         )
         return conv_requests.all()

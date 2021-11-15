@@ -2,6 +2,7 @@
 from .account import change_status
 from .account import change_status_save
 from .account import profile
+from .account import get_profile
 from .registration import check_notion_username
 from .registration import check_username
 from .registration import registration_final

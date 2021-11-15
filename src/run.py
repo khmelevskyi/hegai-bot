@@ -56,13 +56,13 @@ def main():
 
         j = updater.job_queue
 
-        callback_time = datetime_time(hour=9, minute=54, tzinfo=TIME_ZONE)
+        callback_time = datetime_time(hour=3, minute=54, tzinfo=TIME_ZONE)
         j.run_daily(callback=parse_notion_update_users, time=callback_time)
 
-        callback_time = datetime_time(hour=9, minute=58, tzinfo=TIME_ZONE)
+        callback_time = datetime_time(hour=3, minute=58, tzinfo=TIME_ZONE)
         j.run_daily(callback=parse_tags_notion_update, time=callback_time)
 
-        callback_time = datetime_time(hour=9, minute=5, tzinfo=TIME_ZONE)
+        callback_time = datetime_time(hour=10, minute=5, tzinfo=TIME_ZONE)
         j.run_daily(callback=ask_feedback, time=callback_time)
 
         # message handlers
