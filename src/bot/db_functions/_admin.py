@@ -62,7 +62,7 @@ class Mixin:
         try:
             del_action = (
                 session.query(UserAction)
-                .filter(UserAction.chat_id == chat_id)
+                .filter(UserAction.user_id == user.id)
                 .delete(synchronize_session=False)
             )
             del_user = (

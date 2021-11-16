@@ -157,6 +157,13 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         return user_tags
 
     @local_session
+    def get_user_tags_by_notion_id(self, session, notion_id) -> List:
+        """ returns all user tags by notion_id """
+        user_id = self.get_user_data_by_notion_id(notion_id).id
+        user_tags = session.query(UserTag).filter(UserTag.user_id == user_id).all()
+        return user_tags
+
+    @local_session
     def get_user_tags_by_user_id(self, session, user_id) -> List:
         """ returns all user tags by chat_id """
         user_tags = session.query(UserTag).filter(UserTag.user_id == user_id).all()
@@ -166,6 +173,14 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     def add_user_tag(self, session, chat_id, tag_id) -> None:
         """ saves a new user tag to db """
         user_id = self.get_user_data(chat_id).id
+        user_tag = UserTag(user_id=user_id, tag_id=tag_id)
+        session.add(user_tag)
+        session.commit()
+
+    @local_session
+    def add_user_tag_by_notion_id(self, session, notion_id, tag_id) -> None:
+        """ pass """
+        user_id = self.get_user_data_by_notion_id(notion_id).id
         user_tag = UserTag(user_id=user_id, tag_id=tag_id)
         session.add(user_tag)
         session.commit()
@@ -316,9 +331,9 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         session.commit()
 
     @local_session
-    def save_new_region(self, session, chat_id, new_region) -> None:
+    def save_new_region(self, session, notion_id, new_region) -> None:
         """ saves user's new name to db """
-        user = session.query(User).filter(User.chat_id == chat_id).first()
+        user = session.query(User).filter(User.notion_id == notion_id).first()
         user.region = new_region
         session.commit()
 
@@ -358,18 +373,16 @@ class DBSession(_admin.Mixin, _registration.Mixin):
             ban_id = session.query(Action.id).filter(Action.name == "ban").first()
             chat_ids = list(failed_users.keys())
 
-            # drop timers of banned users
             users = session.query(User).filter(User.chat_id.in_(chat_ids)).all()
             for user in users:
                 is_banned, error = failed_users[user.chat_id]
                 if not is_banned:
+                    print(error)
                     user.is_banned = True
                     # create action in case user banned for the first time
-                    new_action = UserAction(chat_id=user.chat_id, action=ban_id)
+                    new_action = UserAction(user_id=user.id, action=ban_id[0])
                     # log banned time
                     session.add(new_action)
-                if user.error != error:
-                    user.error = error  # track newest errors
             session.commit()
 
     @local_session
@@ -396,7 +409,7 @@ class DBSession(_admin.Mixin, _registration.Mixin):
                     user.is_banned = True
 
                     # log banned
-                    new_action = UserAction(chat_id=user.chat_id, action=ban_id)
+                    new_action = UserAction(user_id=user.id, action=ban_id)
                     session.add(new_action)
         session.commit()
 

@@ -17,8 +17,8 @@ from bot.data import TIME_ZONE
 from bot.handlers import ask_feedback
 from bot.handlers import echo
 from bot.handlers import error_handler
-from bot.handlers import parse_notion_update_users
 from bot.handlers import parse_tags_notion_update
+from bot.handlers import parse_user_tags_notion_update
 
 # configure_logger()
 load_dotenv()
@@ -57,10 +57,10 @@ def main():
         j = updater.job_queue
 
         callback_time = datetime_time(hour=3, minute=54, tzinfo=TIME_ZONE)
-        j.run_daily(callback=parse_notion_update_users, time=callback_time)
+        j.run_daily(callback=parse_tags_notion_update, time=callback_time)
 
         callback_time = datetime_time(hour=3, minute=58, tzinfo=TIME_ZONE)
-        j.run_daily(callback=parse_tags_notion_update, time=callback_time)
+        j.run_daily(callback=parse_user_tags_notion_update, time=callback_time)
 
         callback_time = datetime_time(hour=10, minute=5, tzinfo=TIME_ZONE)
         j.run_daily(callback=ask_feedback, time=callback_time)

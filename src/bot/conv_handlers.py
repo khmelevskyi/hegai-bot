@@ -44,6 +44,8 @@ from .handlers import delete_url_button
 from .handlers import prepare_broadcast
 from .handlers import broadcast_status
 from .handlers import bot_statistics
+from .handlers import ask_users_to_match
+from .handlers import manual_match
 from .states import States
 
 
@@ -123,6 +125,7 @@ conv_handler = ConversationHandler(
         ],
         States.DEFAULT_TAGS_OR_NEW: [
             *necessary_handlers,
+            MessageHandler(Filters.text([text["back"]]), start),
             MessageHandler(
                 Filters.text([text["use_profile_tags"], text["choose_tags_yourself"]]),
                 ask_conv_filters,
@@ -173,6 +176,7 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text([text["back"]]), start),
             MessageHandler(Filters.text([text["stats"]]), bot_statistics),
             MessageHandler(Filters.text([text["mailing"]]), push_mssg),
+            MessageHandler(Filters.text([text["manual_match"]]), ask_users_to_match),
             # MessageHandler(Filters.text([text["push_mssg"]]), push_mssg),
         ],
         States.PUSH_MSSG_ADD_TEXT: [
@@ -200,6 +204,10 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text([text["start_mailing"]]), prepare_broadcast),
             MessageHandler(Filters.regex(URL_BUTTON_REGEX), set_url_button),
             MessageHandler((Filters.text | Filters.photo), display_push),
+        ],
+        States.MANUAL_MATCH: [
+            MessageHandler(Filters.text([text["back"]]), admin),
+            MessageHandler(Filters.text, manual_match),
         ],
     },
     fallbacks=[CommandHandler("stop", stop)],

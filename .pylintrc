@@ -30,5 +30,6 @@ disable=import-error,
         redefined-outer-name,
         super-init-not-called,
         no-else-raise,
+        binary-op-exception,
 [DESIGN]
 max-attributes=12

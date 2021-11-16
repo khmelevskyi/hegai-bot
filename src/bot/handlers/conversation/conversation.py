@@ -67,12 +67,16 @@ def ask_conv_filters(update: Update, context: CallbackContext):
     answer = update.message.text
     tags_chooser.flush()
 
+    user = db_session.get_user_data(chat_id)
+
     user_tags = db_session.get_user_tags(chat_id)
     for user_tag in user_tags:
         db_session.remove_user_tag(user_tag.id)
 
     if answer == text["use_profile_tags"]:
-        profile_data = get_profile()
+        profile_data = get_profile(update, context, user.notion_id)
+        if profile_data == None:
+            return start(update, context)
         tags = profile_data["Function"] + profile_data["Industry"]
         print(tags)
         for tag in tags:
@@ -157,12 +161,7 @@ def show_page(update: Update, context: CallbackContext):
         one_time_keyboard=True,
     )
     try:
-        if tags_chooser.curr_status == "None":
-            update.callback_query.edit_message_text("Выберите Сферы")
-        else:
-            update.callback_query.edit_message_text(
-                f"Выберите {tags_chooser.curr_status}"
-            )
+        update.callback_query.edit_message_text(f"Выберите {tags_chooser.curr_status}")
         update.callback_query.edit_message_reply_markup(markup)
     except AttributeError:
         context.bot.send_message(

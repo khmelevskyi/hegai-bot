@@ -42,3 +42,5 @@ class States(Enum):
     CHOOSING_TAGS = 20
 
     CHANGE_CHOOSING_TAGS = 21
+
+    MANUAL_MATCH = 22

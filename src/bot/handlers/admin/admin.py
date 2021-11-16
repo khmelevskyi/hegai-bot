@@ -16,6 +16,7 @@ def admin_keyboard_markup() -> ReplyKeyboardMarkup:
     """ returns admin keyboard layout """
 
     admin_keyboard = [
+        [text["manual_match"]],
         [text["mailing"]],
         [text["stats"]],
         [text["back"]],

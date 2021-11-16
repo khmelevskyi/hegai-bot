@@ -38,7 +38,9 @@ def profile(update: Update, context: CallbackContext):
 
     user = db_session.get_user_data(chat_id)
 
-    props = get_profile()
+    props = get_profile(update, context, user.notion_id)
+    if props == None:
+        return States.MENU
 
     cities = str(props["cities"]).replace("'", "").replace("[", "").replace("]", "")
     functions = (
@@ -153,7 +155,6 @@ def start_markup() -> ReplyKeyboardMarkup:
     return markup
 
 
-PAGE_ID = "a64b82078a7d4d9babecb16647d5e95a"
 NOTION_URL = "https://api.notion.com/v1/pages/"
 
 db_username = os.getenv("DB_USERNAME")
@@ -194,9 +195,9 @@ class NotionSync:
         self.properties_data["Тег"] = []
         self.properties_data["Related to Focus (Лидер микросообщества)"] = []
 
-    def query_databases(self, integration_token=os.getenv("NOTION_KEY")):
+    def query_databases(self, notion_id, integration_token=os.getenv("NOTION_KEY")):
         """ queries the databases """
-        database_url = NOTION_URL + PAGE_ID
+        database_url = NOTION_URL + notion_id.replace("-", "")
         response = requests.get(
             database_url,
             headers={
@@ -264,12 +265,20 @@ class NotionSync:
         return self.properties_data
 
 
-def get_profile(*args):
+def get_profile(update: Update, context: CallbackContext, notion_id):
     """ returns the profile info of an user """
     nsync = NotionSync()
 
-    data = nsync.query_databases()
-    properties = nsync.get_properties_titles(data)
-    properties_data = nsync.get_properties_data(data, properties)
+    try:
+        data = nsync.query_databases(notion_id)
+        properties = nsync.get_properties_titles(data)
+        properties_data = nsync.get_properties_data(data, properties)
 
-    return properties_data
+        return properties_data
+    except ApiError:
+        context.bot.send_message(
+            chat_id=update.message.chat.id,
+            text="К сожалению, возникла ошибка. Возможно у Вас нет страницы в Notion",
+            reply_markup=start_markup(),
+        )
+        return None
