@@ -35,6 +35,7 @@ from .handlers import save_feedback
 from .handlers import start_init
 from .handlers import start
 from .handlers import stop
+from .handlers import help
 from .handlers import support_reply
 from .handlers import ask_push_text
 from .handlers import display_push
@@ -70,6 +71,7 @@ push_status_handler = CommandHandler(
 
 necessary_handlers = [
     CommandHandler("start", start_init, pass_job_queue=True),
+    CommandHandler("help", help),
     admin_handler,
     CallbackQueryHandler(
         ask_feedback_result,

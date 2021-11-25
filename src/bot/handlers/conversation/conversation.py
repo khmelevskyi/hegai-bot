@@ -302,7 +302,9 @@ def user_found(conv_request, user_found, common_tags, context):
     db_session.add_contacts(user_two.id, user_one.id)
     context.bot.send_message(
         chat_id=user_one.chat_id,
-        text=f"Мы нашли вам партнера! Встречайте @{user_two.username}\n\nВаши общие интересы: {common_tags_final}",
+        text=f"Мы нашли вам партнера! Встречайте @{user_two.username}\n\n"
+        f"Ваши общие интересы: {common_tags_final}\n\n"
+        "Напишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
     )
 
 
@@ -392,7 +394,8 @@ def support_reply(update: Update, context: CallbackContext):
 
     context.bot.send_message(
         chat_id=user.chat_id,
-        text=f"Мы нашли Вам партнера: @{user_found.username}",
+        text=f"Мы нашли Вам партнера: @{user_found.username} 🎉"
+        "\n\nНапишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
     )
 
     return ConversationHandler.END

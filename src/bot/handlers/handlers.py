@@ -102,7 +102,18 @@ def connect_to_admin(update: Update, context: CallbackContext):
     chat_id = update.message.chat.id
     context.bot.send_message(
         chat_id=chat_id,
-        text=("Напишите нам сюда ➡ @support"),
+        text=("Напишите нам сюда ➡ @Hegaibot"),
+    )
+
+
+def help(update: Update, context: CallbackContext):
+    """ sends user a link to admin """
+    logger.info("help command")
+
+    chat_id = update.message.chat.id
+    context.bot.send_message(
+        chat_id=chat_id,
+        text=("Напишите нам сюда ➡ @Hegaibot"),
     )
 
 

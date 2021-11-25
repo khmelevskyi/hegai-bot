@@ -66,13 +66,15 @@ def manual_match(update: Update, context: CallbackContext):
         context.bot.send_message(
             chat_id=chat_id,
             # chat_id=users[0].chat_id,
-            text=f"Вам нашли собеседника: @{users[1].username}",
+            text=f"Вам нашли собеседника: @{users[1].username} 🎉"
+            "\n\nНапишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
             reply_markup=ReplyKeyboardRemove(),
         )
         context.bot.send_message(
             chat_id=chat_id,
             # chat_id=users[1].chat_id,
-            text=f"Вам нашли собеседника: @{users[0].username}",
+            text=f"Вам нашли собеседника: @{users[0].username} 🎉"
+            "\n\nНапишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
             reply_markup=ReplyKeyboardRemove(),
         )
 
