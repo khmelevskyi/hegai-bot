@@ -261,7 +261,10 @@ def cancel_request(update: Update, context: CallbackContext):
     chat_id = update.message.chat.id
 
     conv_request = db_session.get_conv_request_active_by_user_id(chat_id)
-    db_session.remove_active_conv_request(conv_request.id)
+    try:
+        db_session.remove_active_conv_request(conv_request.id)
+    except AttributeError:
+        pass
 
     context.bot.send_message(
         chat_id=chat_id,
@@ -407,6 +410,13 @@ def support_reply(update: Update, context: CallbackContext):
 
     user_found = db_session.get_user_data_by_notion_id(user_found_notion_id)
 
+    if user_found.chat_id == None:
+        context.bot.send_message(
+            chat_id=update.message.chat.id,
+            text="Извините, но данный пользователь еще ни разу не пользовался ботом 'Хегай Нетворкинг'\nОтправьте ссылку на подходящего человека в виде 'https://www.notion.so/phegai/ссылка_на_человека' реплаем на соотвествующее сообщение",
+        )
+        return States.SUPPORT_REPLY
+
     conv_request = db_session.get_conv_request_active_by_user_id(user.chat_id)
     try:
         db_session.update_conv_request(conv_request, user_found)
@@ -415,13 +425,6 @@ def support_reply(update: Update, context: CallbackContext):
 
     db_session.add_contacts(user.id, user_found.id)
     db_session.add_contacts(user_found.id, user.id)
-
-    if user_found.chat_id == None:
-        context.bot.send_message(
-            chat_id=update.message.chat.id,
-            text="Извините, но данный пользователь еще ни разу не пользовался ботом 'Хегай Нетворкинг'\nОтправьте ссылку на подходящего человека в виде 'https://www.notion.so/phegai/ссылка_на_человека' реплаем на соотвествующее сообщение",
-        )
-        return States.SUPPORT_REPLY
 
     update.message.reply_text(
         text="Спасибо, сообщение о собеседнике доставлено пользователю",

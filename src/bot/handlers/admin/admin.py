@@ -107,7 +107,7 @@ def push_mssg_final(update: Update, context: CallbackContext):
     push_text = context.user_data.pop("push_text")
     push_address = context.user_data.pop("push_address")
 
-    if push_address == "Только москвичи":
+    if push_address == text["push_moscow"]:
         users = db_session.get_all_users_by_region("Москва")
         users += db_session.get_all_users_by_region("Moscow")
     else:
