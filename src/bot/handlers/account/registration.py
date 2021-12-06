@@ -108,7 +108,7 @@ def registration_final(update: Update, context: CallbackContext):
 
     context.bot.send_message(
         chat_id=chat_id,
-        text="Вы авторизованы! Ссылка на бота-консьерж:",
+        text="Вы авторизованы!",
         reply_markup=ReplyKeyboardRemove(),
     )
 

@@ -37,6 +37,9 @@ class TagsChooser:
         if data == "category_n":
             self._curr_status = self._statuses[idx + 1]
             print(self._curr_status)
+        if data == "category_p":
+            self._curr_status = self._statuses[idx - 1]
+            print(self._curr_status)
 
     @property
     def status_tags(self):

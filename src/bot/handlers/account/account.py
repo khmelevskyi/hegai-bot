@@ -81,11 +81,10 @@ def profile(update: Update, context: CallbackContext):
         + f"\n<b>Компетенции:</b> {functions}"
         + f"\n<b>Хобби:</b> {hobbies}"
         + f"\n<b>Отрасли:</b> {industries}"
-        + f"\n<b>Микросообщества:</b> {communities}\n"
+        + f"\n<b>Микросообщества, в которых я состою:</b> {communities}\n"
         # + f"\nС нами с: {user.time_registered}\n"
         + "~" * (div // 2)
         + "\n"
-        + "Если хотите изменить какую-либо информацию о себе в профиле, то измените нужные данные на своей странице в Notion, и изменения автоматически применятся здесь :)\n"
     )
 
     reply_keyboard = [
@@ -97,6 +96,12 @@ def profile(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=chat_id,
         text=info,
+        reply_markup=markup,
+        parse_mode=ParseMode.HTML,
+    )
+    context.bot.send_message(
+        chat_id=chat_id,
+        text="Если вы хотите поменять информацию в своем профиле напишите администраторам в @Hegaibot\n",
         reply_markup=markup,
         parse_mode=ParseMode.HTML,
     )

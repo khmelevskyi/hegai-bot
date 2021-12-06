@@ -36,7 +36,10 @@ def my_contacts(update: Update, context: CallbackContext):
     if contacts == []:
         contacts_info = "На данный момент у Вас нет контактов!"
 
-    info = "<i>Ваши контакты</i>\n\n" + contacts_info
+    info = (
+        "<i>Это люди, с кем у вас была пара в Hegai Random Coffee и в этом боте</i>\n\n"
+        + contacts_info
+    )
 
     context.bot.send_message(
         chat_id=chat_id,

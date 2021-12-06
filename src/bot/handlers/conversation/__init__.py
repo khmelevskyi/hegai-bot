@@ -4,7 +4,7 @@ from .conversation import add_user_tag
 from .conversation import default_or_choose
 from .conversation import ask_conv_filters
 from .conversation import next_back_page_tags
-from .conversation import next_category_tags
+from .conversation import prev_next_category_tags
 from .conversation import create_conv_request
 from .conversation import find_conversation
 from .conversation import cancel_request

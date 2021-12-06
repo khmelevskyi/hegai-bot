@@ -38,7 +38,7 @@ def default_or_choose(update: Update, context: CallbackContext):
 
         context.bot.send_message(
             chat_id=chat_id,
-            text="У Вас уже есть активный запрос на разговор, мы Вас оповестим, когда найдем кого-то!",
+            text=text["conv_request_exists"],
             reply_markup=markup,
         )
         return States.EXISTING_REQUEST
@@ -159,6 +159,13 @@ def show_page(update: Update, context: CallbackContext):
 
     if tags_chooser.curr_status == tags_chooser.statuses[-1]:
         inline_keyboards.append(
+            [
+                InlineKeyboardButton(
+                    text=text["previous_category"], callback_data="category_p"
+                )
+            ]
+        )
+        inline_keyboards.append(
             [InlineKeyboardButton(text=text["finish"], callback_data="finish_t")]
         )
     else:
@@ -176,12 +183,14 @@ def show_page(update: Update, context: CallbackContext):
         one_time_keyboard=True,
     )
     try:
-        update.callback_query.edit_message_text(f"Выберите {tags_chooser.curr_status}")
+        update.callback_query.edit_message_text(
+            f"Выберите {tags_chooser.curr_status}, которые вы хотите лучше узнать через нетворкинг"
+        )
         update.callback_query.edit_message_reply_markup(markup)
     except AttributeError:
         context.bot.send_message(
             chat_id=chat_id,
-            text=f"Выберите {tags_chooser.curr_status}",
+            text=f"Выберите {tags_chooser.curr_status}, которые вы хотите лучше узнать через нетворкинг",
             reply_markup=markup,
         )
 
@@ -217,7 +226,7 @@ def next_back_page_tags(update: Update, context: CallbackContext):
     show_page(update, context)
 
 
-def next_category_tags(update: Update, context: CallbackContext):
+def prev_next_category_tags(update: Update, context: CallbackContext):
     """ changing status of user tags to next """
     update.callback_query.answer()
     data = update.callback_query.data
@@ -268,7 +277,7 @@ def cancel_request(update: Update, context: CallbackContext):
 
     context.bot.send_message(
         chat_id=chat_id,
-        text="Мы отменили прошлый запрос на общение! Теперь Вы можете еще раз попробывать найти собеседника",
+        text="Мы отменили прошлый запрос на общение! Теперь Вы можете еще раз попробовать найти собеседника",
     )
     return start(update, context)
 
@@ -318,18 +327,33 @@ def user_found(conv_request, user_found, common_tags, context):
     user_two = db_session.get_user_data_by_id(user_found.id)
     db_session.add_contacts(user_one.id, user_two.id)
     db_session.add_contacts(user_two.id, user_one.id)
-    context.bot.send_message(
-        chat_id=user_one.chat_id,
-        text=f"Мы нашли вам партнера! Встречайте @{user_two.username}\n\n"
-        f"Ваши общие интересы: {common_tags_final}\n\n"
-        "Напишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
-    )
-    context.bot.send_message(
-        chat_id=user_two.chat_id,
-        text=f"Мы предпологаем вы можете быть полезны друг другу! Встречайте @{user_one.username}\n\n"
-        f"Ваши общие интересы: {common_tags_final}\n\n"
-        "Напишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
-    )
+
+    conversators = [user_two, user_one]
+    for ii in range(len(conversators)):
+        inline_keyboards = [
+            [
+                InlineKeyboardButton(
+                    text="Написать собеседнику!",
+                    url=f"https://t.me/{conversators[ii].username}",
+                )
+            ]
+        ]
+        markup = InlineKeyboardMarkup(
+            inline_keyboards,
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+        try:
+            other_user = conversators[ii + 1]
+        except IndexError:
+            other_user = conversators[ii - 1]
+        context.bot.send_message(
+            chat_id=other_user.chat_id,
+            text=f"Мы нашли вам партнера!\n\n"
+            f"Ваши общие интересы: {common_tags_final}\n\n"
+            "Напишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
+            reply_markup=markup,
+        )
 
 
 def user_not_found(conv_request, context):
@@ -340,7 +364,7 @@ def user_not_found(conv_request, context):
     user_one = db_session.get_user_data_by_id(user_one_id)
     context.bot.send_message(
         chat_id=user_one.chat_id,
-        text="К сожалению, бот не нашел Вам партнера по вашим интересам(\nНо наши администраторы найдут!\nС Вами свяжутся в ближайшем времени",
+        text=text["user_not_found"],
     )
 
     user_tags = db_session.get_user_tags(user_one.chat_id)
@@ -408,9 +432,17 @@ def support_reply(update: Update, context: CallbackContext):
 
     user = db_session.get_user_data_by_username(username)
 
-    user_found = db_session.get_user_data_by_notion_id(user_found_notion_id)
+    try:
+        user_found = db_session.get_user_data_by_notion_id(user_found_notion_id)
+        user_found_chat_id = user_found.chat_id
+    except AttributeError:
+        context.bot.send_message(
+            chat_id=update.message.chat.id,
+            text="Извините, но это неправильный формат\nОтправьте ссылку на подходящего человека в виде 'https://www.notion.so/phegai/ссылка_на_человека' реплаем на соотвествующее сообщение (без '-' в ссылке)",
+        )
+        return States.SUPPORT_REPLY
 
-    if user_found.chat_id == None:
+    if user_found_chat_id == None:
         context.bot.send_message(
             chat_id=update.message.chat.id,
             text="Извините, но данный пользователь еще ни разу не пользовался ботом 'Хегай Нетворкинг'\nОтправьте ссылку на подходящего человека в виде 'https://www.notion.so/phegai/ссылка_на_человека' реплаем на соотвествующее сообщение",
@@ -431,15 +463,30 @@ def support_reply(update: Update, context: CallbackContext):
         # reply_to_message_id=
     )
 
-    context.bot.send_message(
-        chat_id=user.chat_id,
-        text=f"Мы нашли Вам партнера: @{user_found.username} 🎉"
-        "\n\nНапишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
-    )
-    context.bot.send_message(
-        chat_id=user_found.chat_id,
-        text=f"Мы предпологаем вы можете быть полезны друг другу! Встречайте @{user.username} 🎉"
-        "\n\nНапишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
-    )
+    conversators = [user_found, user]
+    for ii in range(len(conversators)):
+        inline_keyboards = [
+            [
+                InlineKeyboardButton(
+                    text="Написать собеседнику!",
+                    url=f"https://t.me/{conversators[ii].username}",
+                )
+            ]
+        ]
+        markup = InlineKeyboardMarkup(
+            inline_keyboards,
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+        try:
+            other_user = conversators[ii + 1]
+        except IndexError:
+            other_user = conversators[ii - 1]
+        context.bot.send_message(
+            chat_id=other_user.chat_id,
+            text="Мы нашли вам партнера 🎉\n\n"
+            "Напишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
+            reply_markup=markup,
+        )
 
     return ConversationHandler.END

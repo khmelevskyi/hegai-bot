@@ -1,7 +1,12 @@
 """ basic single functions and admin menu """
 import re
 
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import (
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
 from telegram import Update
 from telegram.ext import CallbackContext
 from loguru import logger
@@ -63,29 +68,43 @@ def manual_match(update: Update, context: CallbackContext):
             users.append(user)
 
     try:
-        context.bot.send_message(
-            chat_id=chat_id,
-            # chat_id=users[0].chat_id,
-            text=f"Вам нашли собеседника: @{users[1].username} 🎉"
-            "\n\nНапишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-        context.bot.send_message(
-            chat_id=chat_id,
-            # chat_id=users[1].chat_id,
-            text=f"Вам нашли собеседника: @{users[0].username} 🎉"
-            "\n\nНапишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
-            reply_markup=ReplyKeyboardRemove(),
-        )
-
-        db_session.add_contacts(users[0].id, users[1].id)
-        db_session.add_contacts(users[1].id, users[0].id)
-    except (IndexError, AttributeError) as error:
+        users[0].username
+        users[1].chat_id
+    except AttributeError as error:
         logger.error(error)
         context.bot.send_message(
             chat_id=chat_id,
             text="Неправильный ввод данных или таких пользователей не существует!",
             reply_markup=ReplyKeyboardRemove(),
         )
+        return admin(update, context)
+
+    for ii in range(len(users)):
+        inline_keyboards = [
+            [
+                InlineKeyboardButton(
+                    text="Написать собеседнику!",
+                    url=f"https://t.me/{users[ii].username}",
+                )
+            ]
+        ]
+        markup = InlineKeyboardMarkup(
+            inline_keyboards,
+            resize_keyboard=True,
+            one_time_keyboard=True,
+        )
+        try:
+            other_user = users[ii + 1]
+        except IndexError:
+            other_user = users[ii - 1]
+        context.bot.send_message(
+            chat_id=other_user.chat_id,
+            text="Вам нашли партнера!\n\n"
+            "Напишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
+            reply_markup=markup,
+        )
+
+        db_session.add_contacts(users[0].id, users[1].id)
+        db_session.add_contacts(users[1].id, users[0].id)
 
     return admin(update, context)

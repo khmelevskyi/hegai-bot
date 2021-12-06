@@ -31,5 +31,7 @@ disable=import-error,
         super-init-not-called,
         no-else-raise,
         binary-op-exception,
+        pointless-statement,
+        consider-using-enumerate,
 [DESIGN]
 max-attributes=12

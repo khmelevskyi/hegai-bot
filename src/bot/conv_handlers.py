@@ -13,7 +13,7 @@ from .handlers import admin
 from .handlers import default_or_choose
 from .handlers import ask_conv_filters
 from .handlers import next_back_page_tags
-from .handlers import next_category_tags
+from .handlers import prev_next_category_tags
 from .handlers import create_conv_request
 from .handlers import ask_feedback_result
 from .handlers import change_status
@@ -36,6 +36,7 @@ from .handlers import start_init
 from .handlers import start
 from .handlers import stop
 from .handlers import help
+from .handlers import bot_faq
 from .handlers import support_reply
 from .handlers import ask_push_text
 from .handlers import display_push
@@ -109,6 +110,7 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text([text["find_conv"]]), default_or_choose),
             MessageHandler(Filters.text([text["my_contacts"]]), my_contacts),
             MessageHandler(Filters.text([text["connect_admin"]]), connect_to_admin),
+            MessageHandler(Filters.text([text["bot_faq"]]), bot_faq),
         ],
         States.ACCOUNT: [
             *necessary_handlers,
@@ -154,7 +156,8 @@ conv_handler = ConversationHandler(
             CallbackQueryHandler(next_back_page_tags, pattern="next"),
             CallbackQueryHandler(next_back_page_tags, pattern="back"),
             CallbackQueryHandler(start, pattern="cancel"),
-            CallbackQueryHandler(next_category_tags, pattern="category_n"),
+            CallbackQueryHandler(prev_next_category_tags, pattern="category_n"),
+            CallbackQueryHandler(prev_next_category_tags, pattern="category_p"),
             CallbackQueryHandler(create_conv_request, pattern="finish_t"),
         ],
         # -----------------------------------------------------------
