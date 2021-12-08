@@ -82,7 +82,7 @@
     "is_ok": "Твой аккаунт:",
 
     "admin_menu": "Меню админа",
-    "hi_admin": "Привет! Это меню администратора\n\n<i>Public:</i>\n<i>Admin:</i>\n/drop id - delete user\n/set id - set user_data in your profile",
+    "hi_admin": "Привет! Это меню администратора\n\n<i>Public:</i>\n/start - (re)start bot\n/help - info message\n<i>Admin:</i>\n/admin - enter admin menu",
     "db": "БД 🗄",
     "clean_chache": "Кеш 🗑",
     "parse": "Спарсить 📝",
