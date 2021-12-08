@@ -52,6 +52,11 @@ def default_or_choose(update: Update, context: CallbackContext):
 
     context.bot.send_message(
         chat_id=chat_id,
+        text=text["conversation_instructions"],
+    )
+
+    context.bot.send_message(
+        chat_id=chat_id,
         text="Использовать теги из Вашего профиля или хотите выбрать теги для поиска вручную?",
         reply_markup=markup,
     )

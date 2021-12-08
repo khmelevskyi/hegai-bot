@@ -182,7 +182,6 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text([text["stats"]]), bot_statistics),
             MessageHandler(Filters.text([text["mailing"]]), push_mssg),
             MessageHandler(Filters.text([text["manual_match"]]), ask_users_to_match),
-            # MessageHandler(Filters.text([text["push_mssg"]]), push_mssg),
         ],
         States.PUSH_MSSG_ADD_TEXT: [
             *necessary_handlers,
