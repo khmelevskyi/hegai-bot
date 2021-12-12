@@ -99,8 +99,8 @@ def manual_match(update: Update, context: CallbackContext):
             other_user = users[ii - 1]
         context.bot.send_message(
             chat_id=other_user.chat_id,
-            text="Вам нашли партнера!\n\n"
-            "Напишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
+            text="Наши администраторы предпологают Вам будет интересно пообщаться с данным собеседником!\n\n"
+            "Напишите ему/ей/им в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
             reply_markup=markup,
         )
 

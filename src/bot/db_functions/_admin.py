@@ -12,6 +12,7 @@ from ..data import TIME_ZONE
 from ..hegai_db import Admin
 from ..hegai_db import User
 from ..hegai_db import UserAction
+from ..hegai_db import Feedback
 from ._utils import local_session
 
 
@@ -81,6 +82,7 @@ class Mixin:
     def get_statistics(self, session):
         """ compiles total statistics for admin toolbar """
 
+        # users
         current_time = datetime.now(tz=TIME_ZONE)
         day_ago = current_time - timedelta(days=1)
         week_ago = current_time - timedelta(days=7)
@@ -127,6 +129,29 @@ class Mixin:
 
         not_banned = session.query(User).filter(User.is_banned == false()).count()
 
+        # feedbacks
+        feedbacks_yes = (
+            session.query(Feedback)
+            .filter(Feedback.rate != None, Feedback.conversation_occured == True)
+            .all()
+        )
+        total_rate = 0
+        total_feedbacks_yes = 0
+        for feedback in feedbacks_yes:
+            total_rate += feedback.rate
+            total_feedbacks_yes += 1
+
+        feedback_yes_avg_rate = round(total_rate / total_feedbacks_yes, 1)
+
+        total_feedbacks_no = (
+            session.query(Feedback)
+            .filter(Feedback.comment != None, Feedback.conversation_occured == False)
+            .count()
+        )
+
+        total_feedbacks = session.query(Feedback).count()
+
+        # stats
         statistics = {
             "new_users": [new_day_users, new_week_users, new_month_users],
             "actions": [
@@ -137,6 +162,10 @@ class Mixin:
             "total_users": [total_users],
             "active_users": [day_users, week_users, month_users],
             "banned": [not_banned, total_users],
+            "total_feedback_yes": total_feedbacks_yes,
+            "feedback_yes_avg_rate": feedback_yes_avg_rate,
+            "total_feedback_no": total_feedbacks_no,
+            "total_feedbacks": total_feedbacks,
         }
 
         return statistics

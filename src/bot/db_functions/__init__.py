@@ -339,13 +339,61 @@ class DBSession(_admin.Mixin, _registration.Mixin):
 
     @local_session
     def save_new_status(self, session, chat_id) -> None:
-        """ saves user's new name to db """
+        """ saves user's new status to db """
         user = session.query(User).filter(User.chat_id == chat_id).first()
         if user.conversation_open == True:
             user.conversation_open = False
         else:
             user.conversation_open = True
         session.commit()
+
+    @local_session
+    def get_total_feedback_yes(self, session):
+        """ returns total amount of yes feedbacks """
+
+        feedbacks_yes = (
+            session.query(Feedback)
+            .filter(Feedback.rate != None, Feedback.conversation_occured == True)
+            .count()
+        )
+
+        return feedbacks_yes
+
+    @local_session
+    def get_total_feedback_no(self, session):
+        """ returns total amount of yes feedbacks """
+
+        feedbacks_no = (
+            session.query(Feedback)
+            .filter(Feedback.comment != None, Feedback.conversation_occured == False)
+            .count()
+        )
+
+        return feedbacks_no
+
+    @local_session
+    def get_total_feedback(self, session):
+        """ returns total amount of yes feedbacks """
+
+        feedbacks = session.query(Feedback).count()
+
+        return feedbacks
+
+    @local_session
+    def get_avg_rate_feedback_yes(self, session):
+        """ returns average rate of total feedbacks yes """
+        feedbacks_yes = (
+            session.query(Feedback)
+            .filter(Feedback.rate != None, Feedback.conversation_occured == True)
+            .all()
+        )
+        total_rate = 0
+        amount_feedbacks = 0
+        for feedback in feedbacks_yes:
+            total_rate += feedback.rate
+            amount_feedbacks += 1
+
+        return round(total_rate / amount_feedbacks, 1)
 
     @local_session
     def ban_user(self, session, chat_id: int) -> None:

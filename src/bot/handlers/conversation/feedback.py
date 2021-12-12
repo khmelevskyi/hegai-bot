@@ -1,4 +1,6 @@
 """ ask for feedback module """
+from os import getenv
+from telegram import ParseMode
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
 from telegram import ReplyKeyboardMarkup
@@ -98,6 +100,20 @@ def save_feedback(update: Update, context: CallbackContext):
         )
         db_session.make_conv_request_inactive(conv_request.id)
         db_session.create_not_success_feedback(conv_request.id, mssg)
+
+        user_one = db_session.get_user_data(chat_id)
+        user_found = db_session.get_user_data_by_id(conv_request.user_found)
+
+        context.bot.send_message(
+            chat_id=getenv("GROUP_ID"),
+            text=(
+                f"Диалог между @{user_one.username} и @{user_found.username} не состоялся\n"
+                + f"Причина по словам @{user_one.username}:\n"
+                + f"<i>{mssg}</i>"
+            ),
+            parse_mode=ParseMode.HTML,
+        )
+
     context.bot.send_message(
         chat_id=chat_id,
         text="Спасибо за Ваш ответ!",
