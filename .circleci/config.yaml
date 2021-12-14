@@ -1,0 +1,19 @@
+version: 2.1
+
+workflows:
+  main:
+    jobs:
+      - deploy-prod:
+          filters:
+            branches:
+              only: master
+
+
+jobs:
+  deploy-prod:
+    docker:
+      - image: circleci/python:3.8
+
+    steps:
+      - checkout
+      - run: ssh -oStrictHostKeyChecking=no -v $USER@$HOSTNAME -p $PORT sudo ssh_deploy/deploy.sh -p hegai_bot
