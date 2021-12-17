@@ -19,6 +19,7 @@ from ..db_functions import db_session
 from ..states import States
 from .account import check_username
 from .account import users
+from .statistics import save_user_started_bot_to_notion
 
 
 def start_markup() -> ReplyKeyboardMarkup:
@@ -36,6 +37,7 @@ def start_init(update: Update, context: CallbackContext):
     db_session.add_user(chat=chat)
 
     chat_id = update.message.chat.id
+    save_user_started_bot_to_notion(chat_id)
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)

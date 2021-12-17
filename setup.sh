@@ -9,14 +9,12 @@ echo -e "\n${RED}Deleting old environment${ENDCOLOR}\n"
 deactivate
 rm -rf venv
 
-echo -e "\n${RED}Creating new environment${ENDCOLOR}\n"
-python3 -m venv venv
-. venv/bin/activate
+echo -e "\n${RED}Installing package manager${ENDCOLOR}\n"
+curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 
 echo -e "\n${RED}Updating packages${ENDCOLOR}\n"
-pip3 install --upgrade pip
-pip3 install wheel
-pip3 install poetry
+poetry --version
+poetry self update
 
 # check if command line argument is dev or empty
 if [[ "$1" = "--dev" || "$1" = "-d" ]]

@@ -1,4 +1,5 @@
 """ ask for feedback module """
+import json
 from os import getenv
 from telegram import ParseMode
 from telegram import InlineKeyboardButton
@@ -7,11 +8,61 @@ from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from telegram import Update
 from telegram.ext import CallbackContext
+from loguru import logger
 
 from ...data import text
 from ...db_functions import db_session
 from ...states import States
 from ..handlers import start
+from ..statistics import save_feedback_to_notion
+
+json_body = """
+{
+    "parent": { "database_id": "36b7d151fc614f1bbdaa02daa3ae2aa6" },
+    "properties": {
+        "Name": {
+            "title": [
+                {
+                    "text": {
+                        "content": "username"
+                    }
+                }
+            ]
+        },
+        "Reference": {
+            "relation": [
+                {
+                    "id": "123"
+                }
+            ]
+        },
+        "With": {
+            "rich_text": [
+                {
+                    "text": {
+                        "content": "user_found_username"
+                    }
+                }
+            ]
+        },
+        "Occured": {
+            "checkbox": true
+        },
+        "Rate": {
+            "number": 0
+        },
+        "Comment": {
+            "rich_text": [
+                {
+                    "text": {
+                        "content": "comment"
+                    }
+                }
+            ]
+        }
+    }
+}
+"""
 
 
 def ask_feedback(*args):
@@ -87,14 +138,32 @@ def save_feedback(update: Update, context: CallbackContext):
     mssg = update.message.text
 
     if mssg in ["1", "2", "3", "4", "5"]:
-        print("conv ha been")
         conv_request = db_session.get_conv_request_more_3_days_active_by_chat_id(
             chat_id
         )
         db_session.make_conv_request_inactive(conv_request.id)
         db_session.create_success_feedback(conv_request.id, int(mssg))
+
+        user_one = db_session.get_user_data(chat_id)
+        user_found = db_session.get_user_data_by_id(conv_request.user_found)
+        logger.info(
+            f"feedback: conv between @{user_one.username} and @{user_found.username} been"
+        )
+        notion_body = json.loads(json_body)
+        notion_body["properties"]["Name"]["title"][0]["text"][
+            "content"
+        ] = user_one.username
+        notion_body["properties"]["Reference"]["relation"][0]["id"] = user_one.notion_id
+        notion_body["properties"]["With"]["rich_text"][0]["text"][
+            "content"
+        ] = user_found.username
+        notion_body["properties"]["Occured"]["checkbox"] = True
+        notion_body["properties"]["Rate"]["number"] = int(mssg)
+        notion_body["properties"].pop("Comment")
+        # notion_body["properties"]["Comment"]["rich_text"][0]["text"]["content"] = None
+        save_feedback_to_notion(json.dumps(notion_body))
+
     else:
-        print("conv has not been")
         conv_request = db_session.get_conv_request_more_3_days_active_by_chat_id(
             chat_id
         )
@@ -103,6 +172,24 @@ def save_feedback(update: Update, context: CallbackContext):
 
         user_one = db_session.get_user_data(chat_id)
         user_found = db_session.get_user_data_by_id(conv_request.user_found)
+
+        user_one = db_session.get_user_data(chat_id)
+        user_found = db_session.get_user_data_by_id(conv_request.user_found)
+        logger.info(
+            f"feedback: conv between @{user_one.username} and @{user_found.username} NOT been"
+        )
+        notion_body = json.loads(json_body)
+        notion_body["properties"]["Name"]["title"][0]["text"][
+            "content"
+        ] = user_one.username
+        notion_body["properties"]["Reference"]["relation"][0]["id"] = user_one.notion_id
+        notion_body["properties"]["With"]["rich_text"][0]["text"][
+            "content"
+        ] = user_found.username
+        notion_body["properties"]["Occured"]["checkbox"] = False
+        notion_body["properties"].pop("Rate")
+        notion_body["properties"]["Comment"]["rich_text"][0]["text"]["content"] = mssg
+        save_feedback_to_notion(json.dumps(notion_body))
 
         context.bot.send_message(
             chat_id=getenv("GROUP_ID"),

@@ -33,6 +33,12 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         return users
 
     @local_session
+    def get_all_users_who_started_bot(self, session):
+        """ pass """
+        users = session.query(User).filter(User.conversation_open != None).all()
+        return users
+
+    @local_session
     def get_all_users_for_broadcast(self, session) -> List[Tuple[int, bool]]:
         """ returns all users ids and is_banned """
         users = session.query(User.chat_id, User.is_banned).all()
@@ -193,6 +199,33 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         session.commit()
 
     @local_session
+    def get_all_users_with_conv_requests(self, session):
+        """ pass """
+        user_ids = session.query(ConversationRequest.user_id).all()
+        user_ids = [user_id[0] for user_id in user_ids]
+        user_ids = list(dict.fromkeys(user_ids))
+        users = []
+        for user_id in user_ids:
+            user = self.get_user_data_by_id(user_id)
+            if user not in users:
+                users.append(user)
+        return users
+
+    @local_session
+    def get_all_conv_requests_not_active_by_user_id(self, session, user_id):
+        """ pass """
+        conv_requests = (
+            session.query(ConversationRequest)
+            .filter(
+                ConversationRequest.user_id == user_id,
+                ConversationRequest.active == False,
+                ConversationRequest.user_found != None,
+            )
+            .all()
+        )
+        return conv_requests
+
+    @local_session
     def get_conv_request_active_by_user_id(
         self, session, chat_id
     ) -> ConversationRequest:
@@ -348,6 +381,27 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         session.commit()
 
     @local_session
+    def get_feedback(self, session, request_id):
+        """ pass """
+
+        feedback = (
+            session.query(Feedback)
+            .filter(
+                Feedback.request_id == request_id,
+            )
+            .first()
+        )
+        return feedback
+
+    @local_session
+    def get_total_feedback(self, session):
+        """ returns total amount of feedbacks """
+
+        feedbacks = session.query(Feedback).count()
+
+        return feedbacks
+
+    @local_session
     def get_total_feedback_yes(self, session):
         """ returns total amount of yes feedbacks """
 
@@ -356,28 +410,18 @@ class DBSession(_admin.Mixin, _registration.Mixin):
             .filter(Feedback.rate != None, Feedback.conversation_occured == True)
             .count()
         )
-
         return feedbacks_yes
 
     @local_session
     def get_total_feedback_no(self, session):
-        """ returns total amount of yes feedbacks """
+        """ returns total amount of no feedbacks """
 
         feedbacks_no = (
             session.query(Feedback)
             .filter(Feedback.comment != None, Feedback.conversation_occured == False)
             .count()
         )
-
         return feedbacks_no
-
-    @local_session
-    def get_total_feedback(self, session):
-        """ returns total amount of yes feedbacks """
-
-        feedbacks = session.query(Feedback).count()
-
-        return feedbacks
 
     @local_session
     def get_avg_rate_feedback_yes(self, session):
@@ -394,6 +438,13 @@ class DBSession(_admin.Mixin, _registration.Mixin):
             amount_feedbacks += 1
 
         return round(total_rate / amount_feedbacks, 1)
+
+    @local_session
+    def add_time_registered(self, session, user_id, time):
+        """ pass """
+        user = session.query(User).get(user_id)
+        user.time_registered = time
+        session.commit()
 
     @local_session
     def ban_user(self, session, chat_id: int) -> None:
