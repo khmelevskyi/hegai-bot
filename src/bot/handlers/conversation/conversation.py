@@ -289,7 +289,7 @@ def cancel_request(update: Update, context: CallbackContext):
 
 def find_conversation(conv_request, context):
     """ checks through all open users wether they have the same tags """
-    logger.info("finding conversation")
+    logger.info("looking for conversation")
 
     user_tags = conv_request.tags
     user_tags_sorted = sorted(user_tags)
@@ -318,7 +318,6 @@ def find_conversation(conv_request, context):
 
 def user_found(conv_request, user_found, common_tags, context):
     """ user found function """
-    logger.info("user for conversation found")
 
     db_session.update_conv_request(conv_request, user_found, common_tags)
 
@@ -329,6 +328,7 @@ def user_found(conv_request, user_found, common_tags, context):
 
     user_one_id = conv_request.user_id
     user_one = db_session.get_user_data_by_id(user_one_id)
+    logger.info(f"user for conversation found for @{user_one.username}")
     user_two = db_session.get_user_data_by_id(user_found.id)
     db_session.add_contacts(user_one.id, user_two.id)
     db_session.add_contacts(user_two.id, user_one.id)
@@ -363,10 +363,12 @@ def user_found(conv_request, user_found, common_tags, context):
 
 def user_not_found(conv_request, context):
     """user not found function """
-    logger.info("user for conversation NOT found, sending info to support")
 
     user_one_id = conv_request.user_id
     user_one = db_session.get_user_data_by_id(user_one_id)
+    logger.info(
+        f"user for conversation NOT found for @{user_one.username}, sending info to support"
+    )
     context.bot.send_message(
         chat_id=user_one.chat_id,
         text=text["user_not_found"],
