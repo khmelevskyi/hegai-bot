@@ -14,7 +14,7 @@ from ...data import text
 from ...db_functions import db_session
 from ...states import States
 from ..handlers import start
-from ..statistics.notion_feedbacks import save_feedback_to_notion
+from ..statistics import save_feedback_to_notion
 
 json_body = """
 {

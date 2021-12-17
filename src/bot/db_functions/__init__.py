@@ -33,6 +33,12 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         return users
 
     @local_session
+    def get_all_users_who_started_bot(self, session):
+        """ pass """
+        users = session.query(User).filter(User.conversation_open != None).all()
+        return users
+
+    @local_session
     def get_all_users_for_broadcast(self, session) -> List[Tuple[int, bool]]:
         """ returns all users ids and is_banned """
         users = session.query(User.chat_id, User.is_banned).all()
@@ -432,6 +438,13 @@ class DBSession(_admin.Mixin, _registration.Mixin):
             amount_feedbacks += 1
 
         return round(total_rate / amount_feedbacks, 1)
+
+    @local_session
+    def add_time_registered(self, session, user_id, time):
+        """ pass """
+        user = session.query(User).get(user_id)
+        user.time_registered = time
+        session.commit()
 
     @local_session
     def ban_user(self, session, chat_id: int) -> None:

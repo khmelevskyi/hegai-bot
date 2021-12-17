@@ -1,10 +1,13 @@
 """ saves feedbacks to notion """
 import os
+import json
 import requests
 
 from sqlalchemy import create_engine
 from loguru import logger
 from dotenv import load_dotenv
+
+from ...db_functions import db_session
 
 load_dotenv()
 
@@ -30,6 +33,36 @@ class ApiError(Exception):
 
     def __str__(self):
         return "APIError: status={}".format(self.status)
+
+
+json_body = """
+{
+    "parent": { "database_id": "b6041b1bc4c04b91a2d850b9693c5fc2" },
+    "properties": {
+        "Name": {
+            "title": [
+                {
+                    "text": {
+                        "content": "full_name"
+                    }
+                }
+            ]
+        },
+        "Reference": {
+            "relation": [
+                {
+                    "id": "123"
+                }
+            ]
+        },
+        "When": {
+            "date": {
+                "start": ""
+            }
+        }
+    }
+}
+"""
 
 
 class NotionSync:
@@ -62,10 +95,17 @@ class NotionSync:
             return response.json()
 
 
-def save_feedback_to_notion(notion_body):
+def save_user_started_bot_to_notion(chat_id):
     """ pass """
     nsync = NotionSync()
-    logger.info("saving feedback to notion")
+    logger.info("user started the bot")
 
-    nsync.query_databases(notion_body)
-    logger.info("feedback saved to notion✅")
+    user = db_session.get_user_data(chat_id)
+
+    notion_body = json.loads(json_body)
+    notion_body["properties"]["Name"]["title"][0]["text"]["content"] = user.full_name
+    notion_body["properties"]["Reference"]["relation"][0]["id"] = user.notion_id
+    notion_body["properties"]["When"]["date"]["start"] = str(user.time_registered)
+
+    if user.notion_id != None or len(user.notion_id) > 5:
+        nsync.query_databases(json.dumps(notion_body))
