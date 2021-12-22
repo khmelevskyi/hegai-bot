@@ -4,7 +4,6 @@ from os import getenv
 from telegram import ParseMode
 from telegram import InlineKeyboardButton
 from telegram import InlineKeyboardMarkup
-from telegram import ReplyKeyboardMarkup
 from telegram import ReplyKeyboardRemove
 from telegram import Update
 from telegram.ext import CallbackContext
@@ -47,9 +46,6 @@ json_body = """
         },
         "Occured": {
             "checkbox": true
-        },
-        "Rate": {
-            "number": 0
         },
         "Comment": {
             "rich_text": [
@@ -111,18 +107,15 @@ def ask_feedback_result(update: Update, context: CallbackContext):
     print(mssg)
 
     if mssg == "feedback_yes":
-
-        reply_keyboard = [["1", "2"], ["3", "4"], ["5"]]
-        markup = ReplyKeyboardMarkup(
-            reply_keyboard, resize_keyboard=True, selective=True
-        )
+        context.user_data["is_feedback_yes"] = True
 
         context.bot.send_message(
             chat_id=chat_id,
-            text="Отлично! Оцените беседу от 1 до 5:",
-            reply_markup=markup,
+            text="Мы хотим улучшать качество интро, поэтому нам важна обратная связь.\n\nПожалуйста, поделитесь, насколько это интро соответствовало вашему запросу",
+            reply_markup=ReplyKeyboardRemove(),
         )
     else:
+        context.user_data["is_feedback_yes"] = False
         context.bot.send_message(
             chat_id=chat_id,
             text="Очень жаль(\nНапишите почему беседа не состоялась:",
@@ -137,12 +130,12 @@ def save_feedback(update: Update, context: CallbackContext):
     chat_id = update.message.chat.id
     mssg = update.message.text
 
-    if mssg in ["1", "2", "3", "4", "5"]:
+    if context.user_data["is_feedback_yes"] == True:
         conv_request = db_session.get_conv_request_more_3_days_active_by_chat_id(
             chat_id
         )
         db_session.make_conv_request_inactive(conv_request.id)
-        db_session.create_success_feedback(conv_request.id, int(mssg))
+        db_session.create_success_feedback(conv_request.id, mssg)
 
         user_one = db_session.get_user_data(chat_id)
         user_found = db_session.get_user_data_by_id(conv_request.user_found)
@@ -158,9 +151,8 @@ def save_feedback(update: Update, context: CallbackContext):
             "content"
         ] = user_found.username
         notion_body["properties"]["Occured"]["checkbox"] = True
-        notion_body["properties"]["Rate"]["number"] = int(mssg)
-        notion_body["properties"].pop("Comment")
-        # notion_body["properties"]["Comment"]["rich_text"][0]["text"]["content"] = None
+        notion_body["properties"]["Comment"]["rich_text"][0]["text"]["content"] = mssg
+
         save_feedback_to_notion(json.dumps(notion_body))
 
     else:
@@ -187,7 +179,6 @@ def save_feedback(update: Update, context: CallbackContext):
             "content"
         ] = user_found.username
         notion_body["properties"]["Occured"]["checkbox"] = False
-        notion_body["properties"].pop("Rate")
         notion_body["properties"]["Comment"]["rich_text"][0]["text"]["content"] = mssg
         save_feedback_to_notion(json.dumps(notion_body))
 

@@ -17,6 +17,7 @@ from ...states import States
 from ..handlers import start
 from ..tags_chooser import TagsChooser
 from ..account import get_profile
+from ..notion_parse import parse_tags_groups
 
 tags_chooser = TagsChooser()
 
@@ -68,6 +69,9 @@ def ask_conv_filters(update: Update, context: CallbackContext):
     """ asks user for filters for finding a conversation """
     logger.info("asking for user tags")
 
+    global tags_chooser
+    tags_chooser = TagsChooser()
+
     chat_id = update.message.chat.id
     answer = update.message.text
     tags_chooser.flush()
@@ -79,12 +83,21 @@ def ask_conv_filters(update: Update, context: CallbackContext):
         db_session.remove_user_tag(user_tag.id)
 
     if answer == text["use_profile_tags"]:
+        context.user_data["is_profile_tags"] = True
         profile_data = get_profile(update, context, user.notion_id)
         if profile_data == None:
             return start(update, context)
         tags = profile_data["Function"] + profile_data["Industry"]
         print(tags)
+        grouped_tags = []
+        groups = parse_tags_groups()
         for tag in tags:
+            for status in groups.keys():
+                if tag in groups[status]:
+                    grouped_tags.append(status)
+        grouped_tags = list(dict.fromkeys(grouped_tags))
+        print(grouped_tags)
+        for tag in grouped_tags:
             try:
                 tag_id = db_session.get_tag_by_name(tag).id
             except AttributeError:
@@ -92,6 +105,7 @@ def ask_conv_filters(update: Update, context: CallbackContext):
             db_session.add_user_tag(chat_id, tag_id)
         return create_conv_request(update, context)
 
+    context.user_data["is_profile_tags"] = False
     status_list = ["Компетенции", "Отрасли"]
     print(status_list)
     tags_chooser.statuses = status_list
@@ -118,22 +132,14 @@ def show_page(update: Update, context: CallbackContext):
         tag = tags[ii]
         if len(tags) % 2 != 0 and ii == len(tags) - 1:
             inline_keyboards.append(
-                [
-                    InlineKeyboardButton(
-                        text=tags[ii].name, callback_data=f"tag-{tags[ii].name}"
-                    )
-                ]
+                [InlineKeyboardButton(text=tags[ii], callback_data=f"tag-{tags[ii]}")]
             )
         else:
             tag_n = tags[ii + 1]
             inline_keyboards.append(
                 [
-                    InlineKeyboardButton(
-                        text=tag.name, callback_data=f"tag-{tag.name}"
-                    ),
-                    InlineKeyboardButton(
-                        text=tag_n.name, callback_data=f"tag-{tag_n.name}"
-                    ),
+                    InlineKeyboardButton(text=tag, callback_data=f"tag-{tag}"),
+                    InlineKeyboardButton(text=tag_n, callback_data=f"tag-{tag_n}"),
                 ]
             )
 
@@ -307,6 +313,14 @@ def find_conversation(conv_request, context):
                 user_two_tags_names.append(tag_name)
             user_two_tags_sorted = sorted(user_two_tags_names)
 
+            grouped_tags = []
+            groups = parse_tags_groups()
+            for tag in user_two_tags_sorted:
+                for status in groups.keys():
+                    if tag in groups[status]:
+                        grouped_tags.append(status)
+            grouped_tags = list(dict.fromkeys(grouped_tags))
+
             common_tags = [tt for tt in user_tags_sorted if tt in user_two_tags_sorted]
 
             if len(common_tags) >= 2:
@@ -352,13 +366,22 @@ def user_found(conv_request, user_found, common_tags, context):
             other_user = conversators[ii + 1]
         except IndexError:
             other_user = conversators[ii - 1]
-        context.bot.send_message(
-            chat_id=other_user.chat_id,
-            text=f"Мы нашли вам партнера!\n\n"
-            f"Ваши общие интересы: {common_tags_final}\n\n"
-            "Напишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
-            reply_markup=markup,
-        )
+
+        if context.user_data["is_profile_tags"] == True:
+            context.bot.send_message(
+                chat_id=other_user.chat_id,
+                text="Мы нашли вам партнера!\n\n"
+                "Напишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
+                reply_markup=markup,
+            )
+        else:
+            context.bot.send_message(
+                chat_id=other_user.chat_id,
+                text=f"Мы нашли вам партнера!\n\n"
+                f"Ваши общие интересы: {common_tags_final}\n\n"
+                "Напишите собеседнику в Телеграм прямо сейчас и договоритесь о встрече онлайн или вживую",
+                reply_markup=markup,
+            )
 
 
 def user_not_found(conv_request, context):

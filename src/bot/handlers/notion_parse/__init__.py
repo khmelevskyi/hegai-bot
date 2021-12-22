@@ -1,2 +1,3 @@
 from .parse_tags_notion import parse_tags_notion_update
 from .parse_user_tags_notion_update import parse_user_tags_notion_update
+from .parse_notion_tags_groups import parse_tags_groups

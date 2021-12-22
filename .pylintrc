@@ -33,5 +33,7 @@ disable=import-error,
         binary-op-exception,
         pointless-statement,
         consider-using-enumerate,
+        global-statement,
+        consider-iterating-dictionary,
 [DESIGN]
 max-attributes=12

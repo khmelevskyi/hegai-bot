@@ -3,6 +3,7 @@ from typing import Dict
 from typing import List
 
 from ..db_functions import db_session
+from .notion_parse import parse_tags_groups
 
 
 class TagsChooser:
@@ -15,6 +16,7 @@ class TagsChooser:
         self._statuses = []
         self._curr_status: str = None
         self._status_tags = []
+        self._groups = parse_tags_groups()
 
     @property
     def statuses(self):
@@ -47,8 +49,14 @@ class TagsChooser:
         return self._status_tags
 
     @status_tags.setter
-    def status_tags(self, curr_status):
-        self._status_tags = db_session.get_tags_by_status(curr_status)
+    def status_tags(self, curr_status: str):
+        tags_by_status = db_session.get_tags_by_status(curr_status)
+        grouped_tags_by_status = []
+        for tag in tags_by_status:
+            for group in self._groups.keys():
+                if tag.name in self._groups[group]:
+                    grouped_tags_by_status.append(group)
+        self._status_tags = list(dict.fromkeys(grouped_tags_by_status))
 
     @property
     def page(self) -> int:
