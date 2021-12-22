@@ -138,7 +138,6 @@ class Feedback(Base):
     id = Column(Integer, primary_key=True)
     request_id = Column(Integer, ForeignKey("conversation_request.id"))
     conversation_occured = Column(Boolean)
-    rate = Column(Integer)
     comment = Column(String)
 
     request = relationship(
@@ -146,8 +145,8 @@ class Feedback(Base):
     )
 
     def __repr__(self):
-        return "<Feedback(id='{}', request_id='{}', conversation_occured='{}', rate='{}')>".format(
-            self.id, self.request_id, self.conversation_occured, self.rate
+        return "<Feedback(id='{}', request_id='{}', conversation_occured='{}')>".format(
+            self.id, self.request_id, self.conversation_occured
         )
 
 

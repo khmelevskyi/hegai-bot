@@ -314,9 +314,11 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         return conv_request.first()
 
     @local_session
-    def create_success_feedback(self, session, request_id: int, rate: int) -> None:
+    def create_success_feedback(self, session, request_id: int, comment: str) -> None:
         """ saves successful conversation feedback to db """
-        feedback = Feedback(request_id=request_id, conversation_occured=True, rate=rate)
+        feedback = Feedback(
+            request_id=request_id, conversation_occured=True, comment=comment
+        )
         session.add(feedback)
         session.commit()
 
@@ -324,7 +326,7 @@ class DBSession(_admin.Mixin, _registration.Mixin):
     def create_not_success_feedback(
         self, session, request_id: int, comment: str
     ) -> None:
-        """ saves successful conversation feedback to db """
+        """ saves NOt successful conversation feedback to db """
         feedback = Feedback(
             request_id=request_id, conversation_occured=False, comment=comment
         )
