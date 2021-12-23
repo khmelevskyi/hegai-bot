@@ -34,9 +34,14 @@ def start_init(update: Update, context: CallbackContext):
     """ start command an msg """
 
     chat = update.message.chat
-    db_session.add_user(chat=chat)
 
     chat_id = update.message.chat.id
+
+    if not db_session.user_is_registered(chat_id=chat_id):
+        return check_username(update, context)
+
+    db_session.add_user(chat=chat)
+
     save_user_started_bot_to_notion(chat_id)
 
     if chat_id in users:  # if user returned from registration form
@@ -48,8 +53,6 @@ def start_init(update: Update, context: CallbackContext):
         reply_markup=start_markup(),
     )
 
-    if not db_session.user_is_registered(chat_id=chat_id):
-        return check_username(update, context)
     return States.MENU
 
 
@@ -61,9 +64,13 @@ def start(update: Update, context: CallbackContext):
     except AttributeError:
         chat = update.callback_query.message.chat
         update.callback_query.answer()
-    db_session.add_user(chat=chat)
 
     chat_id = chat.id
+
+    if not db_session.user_is_registered(chat_id=chat_id):
+        return check_username(update, context)
+
+    db_session.add_user(chat=chat)
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)
@@ -74,8 +81,6 @@ def start(update: Update, context: CallbackContext):
         chat_id=chat_id, text=text["start"], reply_markup=start_markup()
     )
 
-    if not db_session.user_is_registered(chat_id=chat_id):
-        return check_username(update, context)
     return States.MENU
 
 
