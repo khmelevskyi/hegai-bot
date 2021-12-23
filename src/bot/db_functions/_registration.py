@@ -50,7 +50,7 @@ class Mixin:
             if user.notion_id:
                 return True
             return False
-        except TypeError:
+        except AttributeError:
             return False
 
     @local_session

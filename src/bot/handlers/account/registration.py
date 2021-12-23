@@ -58,7 +58,15 @@ def check_notion_username(update: Update, context: CallbackContext):
         if "@" in username:
             username = username.replace("@", "")
 
-    notion_id = db_session.get_user_data_by_username(username).notion_id
+    try:
+        notion_id = db_session.get_user_data_by_username(username).notion_id
+    except AttributeError:
+        context.bot.send_message(
+            chat_id=chat_id,
+            text="Извините, но Вы не часть сообщества. Напишите в поддержку @Hegaibot, если считаете, что произошла ошибка",
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return None
 
     if username in all_usernames or username in default_list:
         if username in default_list:
@@ -80,7 +88,7 @@ def check_notion_username(update: Update, context: CallbackContext):
     else:
         context.bot.send_message(
             chat_id=chat_id,
-            text="Извините, но Вы не часть сообщества. Напишите в поддержку, если считаете, что произошла ошибка",
+            text="Извините, но Вы не часть сообщества. Напишите в поддержку @Hegaibot, если считаете, что произошла ошибка",
             reply_markup=ReplyKeyboardRemove(),
         )
 

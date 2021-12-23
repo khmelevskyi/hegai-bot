@@ -98,7 +98,7 @@ class NotionSync:
 def save_user_started_bot_to_notion(chat_id):
     """ pass """
     nsync = NotionSync()
-    logger.info("user started the bot")
+    logger.info(f"user ({chat_id}) started the bot")
 
     user = db_session.get_user_data(chat_id)
 
