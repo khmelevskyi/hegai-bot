@@ -155,5 +155,20 @@ def parse_tags_groups(*args):
                 else:
                     object_to_sql(tag, "Отрасли")
 
-    general_df = {**expertise_df, **industry_df}
-    return expertise_df, industry_df
+    general_df = {}
+    for key in set(list(expertise_df.keys()) + list(industry_df.keys())):
+        print(key)
+        try:
+            general_df.setdefault(key, [])
+            for it in expertise_df[key]:
+                general_df[key].append(it)
+        except KeyError:
+            pass
+
+        try:
+            general_df.setdefault(key, [])
+            for it in industry_df[key]:
+                general_df[key].append(it)
+        except KeyError:
+            pass
+    return general_df

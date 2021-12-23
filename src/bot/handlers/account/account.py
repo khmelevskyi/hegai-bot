@@ -202,7 +202,10 @@ class NotionSync:
 
     def query_databases(self, notion_id, integration_token=os.getenv("NOTION_KEY")):
         """ queries the databases """
-        database_url = NOTION_URL + notion_id.replace("-", "")
+        try:
+            database_url = NOTION_URL + notion_id.replace("-", "")
+        except AttributeError:
+            raise ApiError
         response = requests.get(
             database_url,
             headers={

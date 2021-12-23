@@ -61,10 +61,10 @@ class Mixin:
 
         chat_id = chat.id
 
-        user = session.query(User).filter(User.chat_id == chat_id).first()
+        user = session.query(User).filter(User.username == username).first()
         if not user:
             user = self.add_user(chat)
         user.notion_id = notion_id
-        user.username = username
+        user.chat_id = chat_id
         user.conversation_open = conversation_open
         session.commit()

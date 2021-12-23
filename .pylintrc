@@ -35,5 +35,6 @@ disable=import-error,
         consider-using-enumerate,
         global-statement,
         consider-iterating-dictionary,
+        raise-missing-from,
 [DESIGN]
 max-attributes=12
