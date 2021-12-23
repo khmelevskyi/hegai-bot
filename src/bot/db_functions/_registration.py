@@ -46,9 +46,12 @@ class Mixin:
         Create user record if not exist, otherwise update username
         """
         user = session.query(User).filter(User.chat_id == chat_id).first()
-        if user.notion_id:
-            return True
-        return False
+        try:
+            if user.notion_id:
+                return True
+            return False
+        except TypeError:
+            return False
 
     @local_session
     def add_user_data(
