@@ -16,7 +16,7 @@ class TagsChooser:
         self._statuses = []
         self._curr_status: str = None
         self._status_tags = []
-        self._groups = parse_tags_groups()
+        self._expertise_groups, self._industry_groups = parse_tags_groups()
 
     @property
     def statuses(self):
@@ -51,12 +51,21 @@ class TagsChooser:
     @status_tags.setter
     def status_tags(self, curr_status: str):
         tags_by_status = db_session.get_tags_by_status(curr_status)
-        grouped_tags_by_status = []
-        for tag in tags_by_status:
-            for group in self._groups.keys():
-                if tag.name in self._groups[group]:
-                    grouped_tags_by_status.append(group)
-        self._status_tags = list(dict.fromkeys(grouped_tags_by_status))
+
+        if curr_status == self._statuses[0]:
+            grouped_tags_by_status = []
+            for tag in tags_by_status:
+                for group in self._expertise_groups.keys():
+                    if tag.name in self._expertise_groups[group]:
+                        grouped_tags_by_status.append(group)
+            self._status_tags = list(dict.fromkeys(grouped_tags_by_status))
+        elif curr_status == self._statuses[1]:
+            grouped_tags_by_status = []
+            for tag in tags_by_status:
+                for group in self._industry_groups.keys():
+                    if tag.name in self._industry_groups[group]:
+                        grouped_tags_by_status.append(group)
+            self._status_tags = list(dict.fromkeys(grouped_tags_by_status))
 
     @property
     def page(self) -> int:
@@ -67,9 +76,9 @@ class TagsChooser:
     def page(self, data: str):
         """ create button """
         if data == "back":
-            self._page = self._page - 10
+            self._page = self._page - 8
         elif data == "next":
-            self._page = self._page + 10
+            self._page = self._page + 8
         else:
             self._page = 0
 

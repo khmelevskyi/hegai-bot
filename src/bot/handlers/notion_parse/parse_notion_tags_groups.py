@@ -156,4 +156,4 @@ def parse_tags_groups(*args):
                     object_to_sql(tag, "Отрасли")
 
     general_df = {**expertise_df, **industry_df}
-    return general_df
+    return expertise_df, industry_df

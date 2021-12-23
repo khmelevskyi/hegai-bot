@@ -90,7 +90,8 @@ def ask_conv_filters(update: Update, context: CallbackContext):
         tags = profile_data["Function"] + profile_data["Industry"]
         print(tags)
         grouped_tags = []
-        groups = parse_tags_groups()
+        expertise_groups, industry_groups = parse_tags_groups()
+        groups = {**expertise_groups, **industry_groups}
         for tag in tags:
             for status in groups.keys():
                 if tag in groups[status]:
