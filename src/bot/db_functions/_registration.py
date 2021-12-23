@@ -17,10 +17,10 @@ class Mixin:
         username = chat.username
         first_name = chat.first_name
 
-        user = session.query(User).filter(User.chat_id == chat_id).first()
+        user = session.query(User).filter(User.username == username).first()
         if user:
-            if user.username != username:
-                user.username = username
+            if user.chat_id != chat_id:
+                user.chat_id = chat_id
                 session.commit()
             if user.is_banned is True:
                 user.is_banned = False
