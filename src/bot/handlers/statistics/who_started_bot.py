@@ -8,6 +8,7 @@ from loguru import logger
 from dotenv import load_dotenv
 
 from ...db_functions import db_session
+from ...hegai_db import local_time
 
 load_dotenv()
 
@@ -90,7 +91,9 @@ class NotionSync:
         )
 
         if response.status_code != 200:
-            raise ApiError(f"Response Status: {response.status_code}")
+            raise ApiError(
+                f"Response Status: {response.status_code}, {response.content}"
+            )
         else:
             return response.json()
 
@@ -105,10 +108,14 @@ def save_user_started_bot_to_notion(chat_id):
     notion_body = json.loads(json_body)
     notion_body["properties"]["Name"]["title"][0]["text"]["content"] = user.full_name
     notion_body["properties"]["Reference"]["relation"][0]["id"] = user.notion_id
-    notion_body["properties"]["When"]["date"]["start"] = str(user.time_registered)
+    if user.time_registered != None:
+        notion_body["properties"]["When"]["date"]["start"] = str(user.time_registered)
+    else:
+        notion_body["properties"]["When"]["date"]["start"] = str(local_time())
+        db_session.add_time_registered(user.id, local_time())
 
     try:
         if user.notion_id != None or len(user.notion_id) > 5:
             nsync.query_databases(json.dumps(notion_body))
-    except (TypeError, ApiError):
+    except TypeError:
         pass
