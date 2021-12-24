@@ -168,7 +168,10 @@ def object_to_sql(new_obj):
 
 cnt = 0
 for indx, ii in users_df.iterrows():
-    username = ii["username"]
+    try:
+        username = ii["username"].lower()
+    except AttributeError:
+        username = ii["username"]
     # print(username)
     is_exists = check_existence(username)
     # print(is_exists)

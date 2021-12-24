@@ -453,7 +453,7 @@ def support_reply(update: Update, context: CallbackContext):
     mssg_replied = update.message.reply_to_message.text
 
     try:
-        username = re.search(r"@(\w*)", mssg_replied).group(0).replace("@", "")
+        username = re.search(r"@(\w*)", mssg_replied).group(0).replace("@", "").lower()
     except AttributeError:
         context.bot.send_message(
             chat_id=update.message.chat.id,

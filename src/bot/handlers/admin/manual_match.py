@@ -46,7 +46,9 @@ def manual_match(update: Update, context: CallbackContext):
     if "@" in answer:
         usernames = re.findall(r"(\B\@\w+)", answer)
         for username in usernames:
-            user = db_session.get_user_data_by_username(username.replace("@", ""))
+            user = db_session.get_user_data_by_username(
+                username.replace("@", "").lower()
+            )
             users.append(user)
 
     elif "notion" in answer:

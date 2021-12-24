@@ -131,17 +131,11 @@ class Mixin:
 
         # feedbacks
         feedbacks_yes = (
-            session.query(Feedback)
-            .filter(Feedback.rate != None, Feedback.conversation_occured == True)
-            .all()
+            session.query(Feedback).filter(Feedback.conversation_occured == True).all()
         )
-        total_rate = 0
         total_feedbacks_yes = 0
-        for feedback in feedbacks_yes:
-            total_rate += feedback.rate
+        for _ in range(len(feedbacks_yes)):
             total_feedbacks_yes += 1
-
-        feedback_yes_avg_rate = round(total_rate / total_feedbacks_yes, 1)
 
         total_feedbacks_no = (
             session.query(Feedback)
@@ -163,7 +157,6 @@ class Mixin:
             "active_users": [day_users, week_users, month_users],
             "banned": [not_banned, total_users],
             "total_feedback_yes": total_feedbacks_yes,
-            "feedback_yes_avg_rate": feedback_yes_avg_rate,
             "total_feedback_no": total_feedbacks_no,
             "total_feedbacks": total_feedbacks,
         }

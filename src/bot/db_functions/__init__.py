@@ -27,6 +27,19 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         self.admins = self.get_admins()
 
     @local_session
+    def change_usernames_to_lowercase(self, session):
+        """ lowers all usernames """
+        users = session.query(User).all()
+        ii = 0
+        for user in users:
+            if user.username:
+                print(ii)
+                ii += 1
+                user_to_edit = session.query(User).get(user.id)
+                user_to_edit.username = user.username.lower()
+                session.commit()
+
+    @local_session
     def get_all_users(self, session) -> List:
         """ returns all users """
         users = session.query(User).all()

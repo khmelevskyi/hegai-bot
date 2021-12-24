@@ -14,7 +14,10 @@ class Mixin:
         Create user record if not exist, otherwise update username
         """
         chat_id = chat.id
-        username = chat.username
+        try:
+            username = chat.username.lower()
+        except AttributeError:
+            username = chat.username
         first_name = chat.first_name
 
         user = session.query(User).filter(User.username == username).first()

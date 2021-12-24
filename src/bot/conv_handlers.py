@@ -151,6 +151,7 @@ conv_handler = ConversationHandler(
             MessageHandler(Filters.text, save_feedback),
         ],
         States.CHOOSING_TAGS: [
+            *necessary_handlers,
             MessageHandler(Filters.text([text["cancel"]]), start),
             CallbackQueryHandler(add_user_tag, pattern="^tag-"),
             CallbackQueryHandler(next_back_page_tags, pattern="next"),
@@ -200,6 +201,7 @@ conv_handler = ConversationHandler(
         #     MessageHandler(Filters.photo, push_mssg_final),
         # ],
         States.PUSH: [
+            *necessary_handlers,
             MessageHandler(Filters.text([text["back"]]), admin),
             MessageHandler(Filters.text([text["drop_mailing"]]), admin),
             CallbackQueryHandler(ask_url_button, pattern="add_url_button"),
@@ -210,6 +212,7 @@ conv_handler = ConversationHandler(
             MessageHandler((Filters.text | Filters.photo), display_push),
         ],
         States.MANUAL_MATCH: [
+            *necessary_handlers,
             MessageHandler(Filters.text([text["back"]]), admin),
             MessageHandler(Filters.text, manual_match),
         ],

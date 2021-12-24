@@ -32,6 +32,7 @@ def start_markup() -> ReplyKeyboardMarkup:
 
 def start_init(update: Update, context: CallbackContext):
     """ start command an msg """
+    logger.info("start init")
 
     chat = update.message.chat
 
@@ -42,7 +43,9 @@ def start_init(update: Update, context: CallbackContext):
 
     db_session.add_user(chat=chat)
 
-    save_user_started_bot_to_notion(chat_id)
+    user = db_session.get_user_data(chat_id)
+    if user.conversation_open == None:
+        save_user_started_bot_to_notion(chat_id)
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)
@@ -148,8 +151,8 @@ def echo(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=chat_id,
         text=(
-            "Зараз бот на технічному обслуговуванні ⚠\n"
-            + "і тимчасово не працює 🧑🏿‍💻\nСкоро повернемося 🕔"
+            "На данный моемент бот на техническом обслуживании ⚠\n"
+            + "и временно не работате 💻❌\nСкоро вернемся 🕔"
         ),
     )
 

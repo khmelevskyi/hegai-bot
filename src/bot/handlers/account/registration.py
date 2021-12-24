@@ -56,7 +56,14 @@ def check_notion_username(update: Update, context: CallbackContext):
         users[chat_id]["last_action_time"] = datetime.now()
         username = update.message.text
         if "@" in username:
-            username = username.replace("@", "")
+            username = username.replace("@", "").lower()
+
+    try:
+        username = (
+            username.lower()
+        )  # in db username are lowercase, bc in notion there are links to TG
+    except AttributeError:
+        username = None
 
     try:
         notion_id = db_session.get_user_data_by_username(username).notion_id
