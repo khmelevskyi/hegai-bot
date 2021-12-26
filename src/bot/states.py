@@ -44,3 +44,5 @@ class States(Enum):
     CHANGE_CHOOSING_TAGS = 21
 
     MANUAL_MATCH = 22
+
+    ASK_CONV_OPEN_IF_NONE = 23

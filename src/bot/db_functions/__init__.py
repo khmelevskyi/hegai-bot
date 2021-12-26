@@ -386,13 +386,16 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         session.commit()
 
     @local_session
-    def save_new_status(self, session, chat_id) -> None:
+    def save_new_status(self, session, chat_id, conv_open=None) -> None:
         """ saves user's new status to db """
         user = session.query(User).filter(User.chat_id == chat_id).first()
-        if user.conversation_open == True:
-            user.conversation_open = False
-        else:
-            user.conversation_open = True
+        if conv_open == None:
+            if user.conversation_open == True:
+                user.conversation_open = False
+            else:
+                user.conversation_open = True
+        elif conv_open != None:
+            user.conversation_open = conv_open
         session.commit()
 
     @local_session

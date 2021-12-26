@@ -119,7 +119,10 @@ class NotionSync:
                         url = url.replace("http://t.me/", "")
                     elif "@" in url:
                         url = url.replace("@", "")
-                    self.properties_data["username"].append(url.lower())
+                    try:
+                        self.properties_data["username"].append(url.lower())
+                    except AttributeError:
+                        self.properties_data["username"].append(url)
 
                 elif p == "Name":
                     name = data_json["results"][ii]["properties"][p]["title"][0][

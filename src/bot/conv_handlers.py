@@ -48,6 +48,7 @@ from .handlers import broadcast_status
 from .handlers import bot_statistics
 from .handlers import ask_users_to_match
 from .handlers import manual_match
+from .handlers import update_conv_open_if_none
 from .states import States
 
 
@@ -173,6 +174,12 @@ conv_handler = ConversationHandler(
             *necessary_handlers,
             MessageHandler(Filters.text([text["back"]]), check_username),
             MessageHandler(Filters.text([text["yes"], text["no"]]), registration_final),
+        ],
+        States.ASK_CONV_OPEN_IF_NONE: [
+            *necessary_handlers,
+            MessageHandler(
+                Filters.text([text["yes"], text["no"]]), update_conv_open_if_none
+            ),
         ],
         # -----------------------------------------------------------
         # Admin

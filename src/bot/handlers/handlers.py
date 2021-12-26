@@ -12,6 +12,8 @@ from telegram.chat import Chat
 from telegram.ext import CallbackContext
 from telegram.ext import ConversationHandler
 
+from .account.account import ApiError
+
 from ..db_functions import Action
 from ..data import start_keyboard
 from ..data import text
@@ -31,6 +33,35 @@ def start_markup() -> ReplyKeyboardMarkup:
     return markup
 
 
+def ask_conv_open_if_none(update: Update, context: CallbackContext):
+    """ asks if open for conv if none """
+    chat_id = update.message.chat.id
+
+    reply_keyboard = [[text["yes"], text["no"]]]
+
+    markup = ReplyKeyboardMarkup(
+        keyboard=reply_keyboard, resize_keyboard=True, selective=True
+    )
+
+    context.bot.send_message(
+        chat_id=chat_id,
+        text="Вы открыты к общению?",
+        reply_markup=markup,
+    )
+    return States.ASK_CONV_OPEN_IF_NONE
+
+
+def update_conv_open_if_none(update: Update, context: CallbackContext):
+    """ updates conv open if none """
+    chat_id = update.message.chat.id
+    mssg = update.message.text
+    boolen_val = {text["yes"]: True, text["no"]: False}
+    conv_open = boolen_val[mssg]
+    db_session.save_new_status(chat_id, conv_open)
+    save_user_started_bot_to_notion(chat_id)
+    start_init(update, context)
+
+
 def start_init(update: Update, context: CallbackContext):
     """ start command an msg """
     logger.info("start init")
@@ -46,9 +77,12 @@ def start_init(update: Update, context: CallbackContext):
 
     user = db_session.get_user_data(chat_id)
     if user.conversation_open == None:
-        save_user_started_bot_to_notion(chat_id)
+        return ask_conv_open_if_none(update, context)
     else:
-        update_user_started_bot_to_notion(chat_id)
+        try:
+            update_user_started_bot_to_notion(chat_id)
+        except ApiError:
+            pass
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)
@@ -80,9 +114,12 @@ def start(update: Update, context: CallbackContext):
 
     user = db_session.get_user_data(chat_id)
     if user.conversation_open == None:
-        save_user_started_bot_to_notion(chat_id)
+        return ask_conv_open_if_none(update, context)
     else:
-        update_user_started_bot_to_notion(chat_id)
+        try:
+            update_user_started_bot_to_notion(chat_id)
+        except ApiError:
+            pass
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)
