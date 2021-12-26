@@ -20,6 +20,7 @@ from ..states import States
 from .account import check_username
 from .account import users
 from .statistics import save_user_started_bot_to_notion
+from .statistics import update_user_started_bot_to_notion
 
 
 def start_markup() -> ReplyKeyboardMarkup:
@@ -46,6 +47,8 @@ def start_init(update: Update, context: CallbackContext):
     user = db_session.get_user_data(chat_id)
     if user.conversation_open == None:
         save_user_started_bot_to_notion(chat_id)
+    else:
+        update_user_started_bot_to_notion(chat_id)
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)
@@ -74,6 +77,12 @@ def start(update: Update, context: CallbackContext):
         return check_username(update, context)
 
     db_session.add_user(chat=chat)
+
+    user = db_session.get_user_data(chat_id)
+    if user.conversation_open == None:
+        save_user_started_bot_to_notion(chat_id)
+    else:
+        update_user_started_bot_to_notion(chat_id)
 
     if chat_id in users:  # if user returned from registration form
         users.pop(chat_id, None)
@@ -136,8 +145,8 @@ def bot_faq(update: Update, context: CallbackContext):
         "Поиск собеседника происходит по тегам. Вы можете искать собеседника по тегам, которые стоят в вашем профиле: ваши компетенции, хобби, отрасли и микросообщества, в которых вы состоите. Ваши теги вы можете посмотреть нажав в главном меню кнопку 'профиль'.\n"
         "Также вы можете найти собеседника по запросу, выбрав теги вручную.\n\n"
         "Для того, чтобы сделать запрос на поиск собеседника выберите в главном меню бота кнопку 'Найти собеседника'. Поиск будет происходить по максимальному совпадению тегов из выбранных, но если бот никого не найдет, то мы подберем вам собеседника вручную и пришлем сюда :)\n\n"
-        "Бот работает только по кнопкам, на текст он реагировать не будет, если вы хотите связаться с человеком пишите вот сюда (и ссылка на второго бота)\n\n"
-        "Бот будет обновляться и вы можете поучаствовать в его разработке! Напишите ваши вопросы, комментарии и любую обратную связь по его работе вот сюда (и ссылку на бота второго)\n"
+        "Бот работает только по кнопкам, на текст он реагировать не будет, если вы хотите связаться с человеком пишите вот сюда @Hegaibot\n\n"
+        "Бот будет обновляться и вы можете поучаствовать в его разработке! Напишите ваши вопросы, комментарии и любую обратную связь по его работе вот сюда @Hegaibot\n"
     )
 
     chat_id = update.message.chat.id

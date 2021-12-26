@@ -56,6 +56,9 @@ json_body = """
                 }
             ]
         },
+        "Conversation_open": {
+            "checkbox": true
+        },
         "When": {
             "date": {
                 "start": ""
@@ -108,6 +111,7 @@ def save_user_started_bot_to_notion(chat_id):
     notion_body = json.loads(json_body)
     notion_body["properties"]["Name"]["title"][0]["text"]["content"] = user.full_name
     notion_body["properties"]["Reference"]["relation"][0]["id"] = user.notion_id
+    notion_body["properties"]["Conversation_open"]["checkbox"] = user.conversation_open
     if user.time_registered != None:
         notion_body["properties"]["When"]["date"]["start"] = str(user.time_registered)
     else:
