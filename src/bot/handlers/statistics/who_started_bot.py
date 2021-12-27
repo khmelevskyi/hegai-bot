@@ -108,6 +108,9 @@ def save_user_started_bot_to_notion(chat_id):
 
     user = db_session.get_user_data(chat_id)
 
+    if user.notion_id == "1":
+        return None
+
     notion_body = json.loads(json_body)
     notion_body["properties"]["Name"]["title"][0]["text"]["content"] = user.full_name
     notion_body["properties"]["Reference"]["relation"][0]["id"] = user.notion_id
