@@ -30,15 +30,26 @@ class Mixin:
                 session.commit()
             return user
 
-        new_user = User(
-            chat_id=chat_id,
-            # notion_id=None,
-            # conversation_open=None,
-            is_banned=False,
-            # region=None,
-            username=username,
-            full_name=first_name,
-        )
+        if username == None:
+            new_user = User(
+                chat_id=chat_id,
+                # notion_id=None,
+                # conversation_open=None,
+                is_banned=False,
+                # region=None,
+                # username=username,
+                full_name=first_name,
+            )
+        else:
+            new_user = User(
+                chat_id=chat_id,
+                # notion_id=None,
+                # conversation_open=None,
+                is_banned=False,
+                # region=None,
+                username=username,
+                full_name=first_name,
+            )
         session.add(new_user)
         session.commit()
         return new_user
