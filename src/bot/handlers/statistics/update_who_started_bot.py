@@ -120,7 +120,7 @@ def update_user_started_bot_to_notion(chat_id):
 
     user = db_session.get_user_data(chat_id)
 
-    if user.notion_id == 1:
+    if user.notion_id == "1":
         return None
 
     data = nsync.get_data(user.notion_id)
