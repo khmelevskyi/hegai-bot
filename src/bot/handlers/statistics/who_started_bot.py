@@ -121,8 +121,6 @@ def save_user_started_bot_to_notion(chat_id):
         notion_body["properties"]["When"]["date"]["start"] = str(local_time())
         db_session.add_time_registered(user.id, local_time())
 
-    try:
-        if user.notion_id != None or len(user.notion_id) > 5:
+    if user.notion_id != None:
+        if len(user.notion_id) > 5:
             nsync.query_databases(json.dumps(notion_body))
-    except TypeError:
-        pass

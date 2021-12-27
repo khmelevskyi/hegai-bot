@@ -59,7 +59,7 @@ def update_conv_open_if_none(update: Update, context: CallbackContext):
     conv_open = boolen_val[mssg]
     db_session.save_new_status(chat_id, conv_open)
     save_user_started_bot_to_notion(chat_id)
-    start_init(update, context)
+    return start_init(update, context)
 
 
 def start_init(update: Update, context: CallbackContext):
