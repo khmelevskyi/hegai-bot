@@ -324,7 +324,7 @@ def find_conversation(conv_request, context):
 
             common_tags = [tt for tt in user_tags_sorted if tt in user_two_tags_sorted]
 
-            if len(common_tags) >= 2:
+            if len(common_tags) >= 1:
                 user_found(conv_request, user, common_tags, context)
                 return True
 
