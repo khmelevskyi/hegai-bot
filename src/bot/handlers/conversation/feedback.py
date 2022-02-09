@@ -89,11 +89,14 @@ def ask_feedback(*args):
         user_one = db_session.get_user_data_by_id(user_id)
         user_found = db_session.get_user_data_by_id(user_found_id)
 
-        context.bot.send_message(
-            chat_id=user_one.chat_id,
-            text=f"Пришло время фидбека!\nПроизошел ли Ваш разговор с @{user_found.username}?",
-            reply_markup=markup,
-        )
+        try:
+            context.bot.send_message(
+                chat_id=user_one.chat_id,
+                text=f"Пришло время фидбека!\nПроизошел ли Ваш разговор с @{user_found.username}?",
+                reply_markup=markup,
+            )
+        except Exception as e:
+            logger.error(f"Error while mailing feedback: {e}")
 
     # return States.ASK_FEEDBACK
 
