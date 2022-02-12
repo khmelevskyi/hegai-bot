@@ -1,16 +1,16 @@
 """initial
 
-Revision ID: dfb82c8a3e7b
+Revision ID: 02dcf3bc2e74
 Revises:
-Create Date: 2021-10-06 14:44:34.423513
+Create Date: 2022-02-12 14:23:54.341097
 
 """
-import sqlalchemy as sa
 from alembic import op
+import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "dfb82c8a3e7b"
+revision = "02dcf3bc2e74"
 down_revision = None
 branch_labels = None
 depends_on = None

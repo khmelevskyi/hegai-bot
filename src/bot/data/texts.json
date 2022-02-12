@@ -80,6 +80,7 @@
     "back": "Назад ⬅️",
     "delete": "Удалить 🗑",
     "is_ok": "Твой аккаунт:",
+    "feedback_never": "Не будем встречаться",
 
     "admin_menu": "Меню админа",
     "hi_admin": "Привет! Это меню администратора\n\n<i>Public:</i>\n/start - (re)start bot\n/help - info message\n<i>Admin:</i>\n/admin - enter admin menu",

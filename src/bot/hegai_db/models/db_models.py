@@ -116,6 +116,9 @@ class ConversationRequest(Base):
     active = Column(Boolean)
     time_posted = Column(DateTime)
     time_processed = Column(DateTime)
+    feedback_times_asked = Column(
+        Integer, default=0, nullable=False, server_default="0"
+    )
 
     user_name = relationship(
         "User", backref="conversation_request_user", foreign_keys=[user_id]

@@ -327,6 +327,13 @@ class DBSession(_admin.Mixin, _registration.Mixin):
         return conv_request.first()
 
     @local_session
+    def increment_feedback_times_asked(self, session, conv_request_id):
+        """ pass """
+        conv_request = session.query(ConversationRequest).get(conv_request_id)
+        conv_request.feedback_times_asked += 1
+        session.commit()
+
+    @local_session
     def create_success_feedback(self, session, request_id: int, comment: str) -> None:
         """ saves successful conversation feedback to db """
         feedback = Feedback(
