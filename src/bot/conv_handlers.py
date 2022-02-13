@@ -49,6 +49,9 @@ from .handlers import bot_statistics
 from .handlers import ask_users_to_match
 from .handlers import manual_match
 from .handlers import update_conv_open_if_none
+from .handlers import get_if_open_ask_max_conv_requests_week
+from .handlers import change_conv_requests_week_max
+from .handlers import change_conv_requests_week_max_save
 from .states import States
 
 
@@ -117,11 +120,23 @@ conv_handler = ConversationHandler(
             *necessary_handlers,
             MessageHandler(Filters.text([text["main_menu"]]), start),
             MessageHandler(Filters.text([text["change_status"]]), change_status),
+            MessageHandler(
+                Filters.text([text["change_conv_requests_week_max"]]),
+                change_conv_requests_week_max,
+            ),
         ],
         States.CHANGE_STATUS: [
             *necessary_handlers,
             MessageHandler(Filters.text([text["cancel"]]), profile),
             MessageHandler(Filters.text([text["yes"]]), change_status_save),
+        ],
+        States.CHANGE_CONV_REQUESTS_WEEK_MAX: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["cancel"]]), profile),
+            MessageHandler(
+                Filters.regex("^([1-9]|[1-9][0-9]|100)$"),
+                change_conv_requests_week_max_save,
+            ),
         ],
         States.ADD_USER_TAG: [
             *necessary_handlers,
@@ -173,7 +188,17 @@ conv_handler = ConversationHandler(
         States.ASK_CONV_OPEN: [
             *necessary_handlers,
             MessageHandler(Filters.text([text["back"]]), check_username),
-            MessageHandler(Filters.text([text["yes"], text["no"]]), registration_final),
+            MessageHandler(
+                Filters.text([text["yes"], text["no"]]),
+                get_if_open_ask_max_conv_requests_week,
+            ),
+        ],
+        States.ASK_CONV_REQUEST_WEEK_MAX: [
+            *necessary_handlers,
+            MessageHandler(Filters.text([text["back"]]), check_username),
+            MessageHandler(
+                Filters.regex("^([1-9]|[1-9][0-9]|100)$"), registration_final
+            ),
         ],
         States.ASK_CONV_OPEN_IF_NONE: [
             *necessary_handlers,

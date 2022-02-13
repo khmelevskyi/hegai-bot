@@ -15,6 +15,10 @@ class States(Enum):
 
     ASK_CONV_OPEN = 4
 
+    ASK_CONV_REQUEST_WEEK_MAX = 5
+
+    CHANGE_CONV_REQUESTS_WEEK_MAX = 6
+
     CHANGE_STATUS = 7
 
     DEFAULT_TAGS_OR_NEW = 8

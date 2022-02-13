@@ -78,6 +78,8 @@ def profile(update: Update, context: CallbackContext):
         # + f"<i>notion id </i>: {user.notion_id}\n"
         + "-" * div
         + f"\nСтатус: <b>{conv_open}</b>\n"
+        + f"\nМаксимальное к-во запросов на общение в неделю: <b>{user.conv_requests_week_max}</b>\n"
+        + f"\nЗапросов на общение на этой неделе: <b>{user.conv_requests_week}</b>\n"
         + f"\n<b>Компетенции:</b> {functions}"
         + f"\n<b>Хобби:</b> {hobbies}"
         + f"\n<b>Отрасли:</b> {industries}"
@@ -89,6 +91,7 @@ def profile(update: Update, context: CallbackContext):
 
     reply_keyboard = [
         [text["change_status"]],
+        [text["change_conv_requests_week_max"]],
         [text["main_menu"]],
     ]
     markup = ReplyKeyboardMarkup(reply_keyboard, resize_keyboard=True, selective=True)
@@ -148,6 +151,44 @@ def change_status_save(update: Update, context: CallbackContext):
     )
 
     db_session.save_new_status(chat_id)
+
+    return profile(update, context)
+
+
+### change conv_requests_week_max
+def change_conv_requests_week_max(update: Update, context: CallbackContext):
+    """ edits user's status """
+    logger.info("changing conv_requests_week_max")
+
+    chat_id = update.message.chat.id
+
+    reply_keyboard = [["1", "2"], ["3", "4"], ["5", "10"]]
+
+    markup = ReplyKeyboardMarkup(
+        keyboard=reply_keyboard, resize_keyboard=True, selective=True
+    )
+
+    context.bot.send_message(
+        chat_id=chat_id,
+        text="Введите новое максимальное количество запросов на общение в неделю\nВыберите вариант ниже или напишите сами(1-100):",
+        reply_markup=markup,
+    )
+
+    return States.CHANGE_CONV_REQUESTS_WEEK_MAX
+
+
+def change_conv_requests_week_max_save(update: Update, context: CallbackContext):
+    """ saves new user's conv_requests_week_max """
+
+    chat_id = update.message.chat.id
+    mssg = update.message.text
+    user = db_session.get_user_data(chat_id)
+
+    context.bot.send_message(
+        chat_id=chat_id, text=text["edit_success"], reply_markup=ReplyKeyboardRemove()
+    )
+
+    db_session.save_new_conv_requests_week_max(user.id, int(mssg))
 
     return profile(update, context)
 

@@ -86,9 +86,23 @@ class DBSession(_admin.Mixin, _registration.Mixin):
 
     @local_session
     def get_open_users(self, session) -> List:
-        """ returns all users who are open for conversation """
-        users = session.query(User).filter(User.conversation_open == True).all()
+        """ returns all users who are open for conversation & limit for conv requests a week is not exceeded """
+        users = (
+            session.query(User)
+            .filter(
+                User.conversation_open == True,
+                User.conv_requests_week_max > User.conv_requests_week,
+            )
+            .all()
+        )
         return users
+
+    @local_session
+    def increment_conv_requests_week(self, session, user_id):
+        """ pass """
+        user: User = session.query(User).get(user_id)
+        user.conv_requests_week += 1
+        session.commit()
 
     @local_session
     def get_user_data(self, session, chat_id: int) -> User:
@@ -403,6 +417,20 @@ class DBSession(_admin.Mixin, _registration.Mixin):
                 user.conversation_open = True
         elif conv_open != None:
             user.conversation_open = conv_open
+        session.commit()
+
+    @local_session
+    def save_new_conv_requests_week_max(self, session, user_id, conv_requests_week_max):
+        """ saves user's new conv_requests_week_max to db """
+        user: User = session.query(User).get(user_id)
+        user.conv_requests_week_max = conv_requests_week_max
+        session.commit()
+
+    @local_session
+    def reset_conv_requests_week(self, session, user_id):
+        """ resets conv_requests_week """
+        user: User = session.query(User).get(user_id)
+        user.conv_requests_week = 0
         session.commit()
 
     @local_session

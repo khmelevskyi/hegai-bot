@@ -69,16 +69,23 @@ class Mixin:
 
     @local_session
     def add_user_data(
-        self, session, chat: Chat, notion_id: str, username: str, conversation_open
+        self,
+        session,
+        chat: Chat,
+        notion_id: str,
+        username: str,
+        conversation_open,
+        conv_requests_week_max,
     ):
         """ save user settings for api request """
 
         chat_id = chat.id
 
-        user = session.query(User).filter(User.username == username).first()
+        user: User = session.query(User).filter(User.username == username).first()
         if not user:
             user = self.add_user(chat)
         user.notion_id = notion_id
         user.chat_id = chat_id
         user.conversation_open = conversation_open
+        user.conv_requests_week_max = conv_requests_week_max
         session.commit()

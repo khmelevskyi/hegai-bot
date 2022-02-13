@@ -167,6 +167,10 @@ class User(Base):
     username = Column(String(35))  # Telegram allows username no longer then 32
     full_name = Column(String)  # first name is unlimited
     time_registered = Column(DateTime(timezone=True), default=local_time)
+    conv_requests_week_max = Column(
+        Integer, default=100, nullable=False, server_default="100"
+    )
+    conv_requests_week = Column(Integer, default=0, nullable=False, server_default="0")
 
     region_name = relationship("Region", backref="user", foreign_keys=[region])
 

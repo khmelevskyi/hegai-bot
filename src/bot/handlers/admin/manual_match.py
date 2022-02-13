@@ -108,5 +108,7 @@ def manual_match(update: Update, context: CallbackContext):
 
         db_session.add_contacts(users[0].id, users[1].id)
         db_session.add_contacts(users[1].id, users[0].id)
+        db_session.increment_conv_requests_week(users[0].id)
+        db_session.increment_conv_requests_week(users[1].id)
 
     return admin(update, context)

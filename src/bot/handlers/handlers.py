@@ -33,6 +33,15 @@ def start_markup() -> ReplyKeyboardMarkup:
     return markup
 
 
+def reset_conv_requests_week(*args):
+    """ resets conv_requests_week for each user """
+    logger.info("resetting conv_requests_week...")
+    users = db_session.get_all_users()
+    for user in users:
+        db_session.reset_conv_requests_week(user.id)
+    logger.info("conv_requests_week resetted")
+
+
 def ask_conv_open_if_none(update: Update, context: CallbackContext):
     """ asks if open for conv if none """
     chat_id = update.message.chat.id

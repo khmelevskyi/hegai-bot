@@ -101,6 +101,33 @@ def check_notion_username(update: Update, context: CallbackContext):
 
 
 @restrict_registration_time
+def get_if_open_ask_max_conv_requests_week(update: Update, context: CallbackContext):
+    """ saves info about if user is open to conversation and sends link to the bot-partner """
+
+    chat_id = update.message.chat.id
+    mssg = update.message.text
+    boolen_val = {text["yes"]: True, text["no"]: False}
+
+    users[chat_id]["last_action_time"] = datetime.now()
+
+    context.user_data["is_conv_open"] = boolen_val[mssg]
+
+    reply_keyboard = [["1", "2"], ["3", "4"], ["5", "10"]]
+
+    markup = ReplyKeyboardMarkup(
+        keyboard=reply_keyboard, resize_keyboard=True, selective=True
+    )
+
+    context.bot.send_message(
+        chat_id=chat_id,
+        text="Сколько максимум запросов на разговор желаете в неделю?\nВыберите вариант ниже или напишите сами(1-100):",
+        reply_markup=markup,
+    )
+
+    return States.ASK_CONV_REQUEST_WEEK_MAX
+
+
+@restrict_registration_time
 def registration_final(update: Update, context: CallbackContext):
     """ saves info about if user is open to conversation and sends link to the bot-partner """
 
@@ -108,7 +135,6 @@ def registration_final(update: Update, context: CallbackContext):
     username = users[chat_id]["username"]
     notion_id = users[chat_id]["notion_id"]
     mssg = update.message.text
-    boolen_val = {text["yes"]: True, text["no"]: False}
 
     users[chat_id]["last_action_time"] = datetime.now()
 
@@ -116,7 +142,8 @@ def registration_final(update: Update, context: CallbackContext):
         chat=update.message.chat,
         notion_id=notion_id,
         username=username,
-        conversation_open=boolen_val[mssg],
+        conversation_open=context.user_data["is_conv_open"],
+        conv_requests_week_max=int(mssg),
     )
 
     del users[chat_id]

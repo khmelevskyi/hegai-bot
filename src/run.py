@@ -20,6 +20,7 @@ from bot.handlers import echo
 from bot.handlers import error_handler
 from bot.handlers import parse_tags_notion_update
 from bot.handlers import parse_user_tags_notion_update
+from bot.handlers import reset_conv_requests_week
 from bot.set_commands import clear_bot
 from bot.set_commands import set_bot_commands
 
@@ -78,8 +79,11 @@ def main():
         callback_time = datetime_time(hour=3, minute=58, tzinfo=TIME_ZONE)
         j.run_daily(callback=parse_user_tags_notion_update, time=callback_time)
 
-        callback_time = datetime_time(hour=17, minute=22, tzinfo=TIME_ZONE)
+        callback_time = datetime_time(hour=10, minute=5, tzinfo=TIME_ZONE)
         j.run_daily(callback=ask_feedback, time=callback_time)
+
+        callback_time = datetime_time(hour=4, minute=5, tzinfo=TIME_ZONE)
+        j.run_daily(callback=reset_conv_requests_week, time=callback_time, days=[0])
 
         # message handlers
         # ================

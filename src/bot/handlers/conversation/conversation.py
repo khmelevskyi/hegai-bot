@@ -335,6 +335,7 @@ def user_found(conv_request, user_found, common_tags, context):
     """ user found function """
 
     db_session.update_conv_request(conv_request, user_found, common_tags)
+    db_session.increment_conv_requests_week(user_found.id)
 
     common_tags_str = str(common_tags)
     common_tags_final = (
@@ -488,6 +489,7 @@ def support_reply(update: Update, context: CallbackContext):
 
     db_session.add_contacts(user.id, user_found.id)
     db_session.add_contacts(user_found.id, user.id)
+    db_session.increment_conv_requests_week(user_found.id)
 
     update.message.reply_text(
         text="Спасибо, сообщение о собеседнике доставлено пользователю",
